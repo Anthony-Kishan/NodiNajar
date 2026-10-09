@@ -1,0 +1,10 @@
+asf_search>=10.0
+earthaccess>=0.9
+h5py>=3.10
+numpy>=1.26
+scipy>=1.11
+pyproj>=3.6
+shapely>=2.0
+pillow>=10.0
+matplotlib>=3.8
+pytest>=8.0

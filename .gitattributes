@@ -1,0 +1,13 @@
+# Line endings: keep scripts runnable on Linux/macOS even when edited on Windows
+* text=auto
+*.sh text eol=lf
+*.py text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.h5 binary
+
+# GitHub language stats: don't count generated or vendored files
+web/demo_fixtures/** linguist-generated=true
+web/vendor/** linguist-vendored=true

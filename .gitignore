@@ -1,0 +1,31 @@
+# downloads and scratch (large NASA files never go in git)
+cache/*
+!cache/.gitkeep
+outputs/*
+!outputs/.gitkeep
+*.h5
+*.nc
+*.tif
+*.tiff
+*.zip
+*.SAFE/
+
+# secrets
+.env
+.netrc
+*.token
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*~

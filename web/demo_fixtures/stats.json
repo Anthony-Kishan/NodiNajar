@@ -1,0 +1,125 @@
+{
+  "mode": "synthetic",
+  "label": "SYNTHETIC TEST DATA - NOT REAL",
+  "generated_utc": "2026-10-09T22:55:36+00:00",
+  "aoi_bbox": [
+    89.6143,
+    24.2104,
+    89.8841,
+    24.666
+  ],
+  "epsg": 32646,
+  "pixel_m": 30.0,
+  "display_step": 2,
+  "image_corners": [
+    [
+      89.602105,
+      24.665724
+    ],
+    [
+      89.884216,
+      24.671847
+    ],
+    [
+      89.895544,
+      24.210556
+    ],
+    [
+      89.614454,
+      24.204562
+    ]
+  ],
+  "scenes": [
+    {
+      "index": 0,
+      "date": "2026-06-18",
+      "granule": "SYNTHETIC_GCOV_20260618",
+      "pol": "HHHH",
+      "threshold_db": -15.86,
+      "water_km2": 169.24,
+      "image": "scene_00.png"
+    },
+    {
+      "index": 1,
+      "date": "2026-06-30",
+      "granule": "SYNTHETIC_GCOV_20260630",
+      "pol": "HHHH",
+      "threshold_db": -15.86,
+      "water_km2": 169.45,
+      "image": "scene_01.png"
+    },
+    {
+      "index": 2,
+      "date": "2026-07-12",
+      "granule": "SYNTHETIC_GCOV_20260712",
+      "pol": "HHHH",
+      "threshold_db": -15.86,
+      "water_km2": 171.48,
+      "image": "scene_02.png"
+    },
+    {
+      "index": 3,
+      "date": "2026-07-24",
+      "granule": "SYNTHETIC_GCOV_20260724",
+      "pol": "HHHH",
+      "threshold_db": -15.86,
+      "water_km2": 171.96,
+      "image": "scene_03.png"
+    },
+    {
+      "index": 4,
+      "date": "2026-08-17",
+      "granule": "SYNTHETIC_GCOV_20260817",
+      "pol": "HHHH",
+      "threshold_db": -15.86,
+      "water_km2": 172.45,
+      "image": "scene_04.png"
+    },
+    {
+      "index": 5,
+      "date": "2026-08-29",
+      "granule": "SYNTHETIC_GCOV_20260829",
+      "pol": "HHHH",
+      "threshold_db": -15.86,
+      "water_km2": 172.49,
+      "image": "scene_05.png"
+    },
+    {
+      "index": 6,
+      "date": "2026-09-10",
+      "granule": "SYNTHETIC_GCOV_20260910",
+      "pol": "HHHH",
+      "threshold_db": -15.86,
+      "water_km2": 171.44,
+      "image": "scene_06.png"
+    },
+    {
+      "index": 7,
+      "date": "2026-09-22",
+      "granule": "SYNTHETIC_GCOV_20260922",
+      "pol": "HHHH",
+      "threshold_db": -15.86,
+      "water_km2": 171.33,
+      "image": "scene_07.png"
+    }
+  ],
+  "period_days": 96,
+  "lost_rule": "land on the first date and water on the last two dates",
+  "totals": {
+    "land_lost_ha": 210.6,
+    "max_retreat_m": 334.0,
+    "cells_red": 18,
+    "cells_amber": 35,
+    "homes_near_new_bank": 108
+  },
+  "method": {
+    "speckle_filter": "median 5x5",
+    "water_rule": "dB below threshold (Otsu per scene unless set); specks < 50 px removed",
+    "retreat": "95th percentile distance from lost pixels to the nearest land on the last date",
+    "cell_m": 500.0,
+    "near_m": 200.0,
+    "risk_rule": "red: retreat >= 100 m and homes within near_m; amber: retreat >= 30 m",
+    "uncertainty": "Pixel spacing sets the minimum detectable retreat (about 2 pixels). Flooding of low land can look like erosion; only land that stays water on the last two passes is counted."
+  },
+  "homes_source": "synthetic points"
+}

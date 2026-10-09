@@ -1,0 +1,18 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Jamuna, Sirajganj (Kazipur to Chauhali)",
+        "role": "main proof site",
+        "source": "Box used for the team's ASF NISAR search on 2026-10-09 (docs/coverage/)",
+        "note": "Still a rectangle. Tighten to the active channel belt in QGIS over a basemap before the final run."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[89.6143, 24.2104], [89.8841, 24.2104], [89.8841, 24.6660], [89.6143, 24.6660], [89.6143, 24.2104]]]
+      }
+    }
+  ]
+}

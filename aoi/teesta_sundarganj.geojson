@@ -1,0 +1,41 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Teesta, Sundarganj (Kapasia union area)",
+        "role": "story site, optional second check",
+        "note": "Still a rectangle. Tighten to the channel in QGIS before use.",
+        "source": "Box used for the team's ASF NISAR search on 2026-10-09 (docs/coverage/)"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              89.4,
+              25.45
+            ],
+            [
+              89.65,
+              25.45
+            ],
+            [
+              89.65,
+              25.68
+            ],
+            [
+              89.4,
+              25.68
+            ],
+            [
+              89.4,
+              25.45
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

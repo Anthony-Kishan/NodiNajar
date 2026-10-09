@@ -1,0 +1,98 @@
+# NodiNajar (নদীনজর) · River Watch
+
+**Team AlphaMatrix · NASA Space Apps Challenge 2026 · Challenge: Dancing with the SARs**
+
+NodiNajar uses NASA-ISRO NISAR L-band radar, which sees through monsoon cloud, to measure how far riverbanks move between passes. It marks 500 m cells where the bank is retreating toward homes and turns that into a Bangla voice and SMS alert. The proof site is the Jamuna River in Sirajganj, Bangladesh.
+
+> **Data status:** NISAR products are **provisional** (validated at a limited set of sites). The demo currently ships with **synthetic test scenes** placed on real NISAR pass dates. The interface says so in red until real NISAR scenes are loaded. Never present synthetic output as real.
+
+## Run the demo (no internet needed)
+
+Open `web/index.html` in Chrome or Firefox. That's it: the data is inlined in `web/demo_fixtures/demo_data.js`.
+
+Drag the white handle to swipe between two radar passes. Click a red or amber cell to see its retreat chart and the Bangla alert. Open "Methods and data" for every processing step and the raw numbers.
+
+## Setup for development
+
+```bash
+python -m venv .venv
+source .venv/bin/activate              # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+pytest -q                              # 11 tests, all should pass
+```
+
+## Load real NISAR data (target: before 12 November)
+
+NISAR passed over the Jamuna reach on 31 dates from 18 June to 29 September 2026, in 4 repeat cycles of 7 or 8 passes. We plan to use the **18 Jun cycle**, which also covers the Teesta. Details: [`docs/COVERAGE.md`](docs/COVERAGE.md).
+
+```bash
+# 1. Earthdata token: urs.earthdata.nasa.gov > profile > Generate Token
+export EARTHDATA_TOKEN="..."           # PowerShell: $env:EARTHDATA_TOKEN="..."
+
+# 2. Pass dates per repeat cycle (no login needed)
+python tools/asf_pass_dates.py --aoi aoi/jamuna_sirajganj.geojson --products GCOV
+
+# 3. Confirm track/frame numbers for GCOV, then download from ONE track/frame
+python tools/check_coverage.py --aoi aoi/jamuna_sirajganj.geojson --products GCOV
+python tools/check_coverage.py --aoi aoi/jamuna_sirajganj.geojson --products GCOV --download 2
+
+# 4. Look inside one file, note the layer path, EPSG and water dB
+python tools/inspect_h5.py cache/nisar/<file>.h5 --quicklook auto --db
+
+# 5. Build the demo from real scenes (+ Open Buildings CSV for homes)
+python -m src.pipeline.build_demo --scenes cache/nisar/*.h5 --buildings cache/open_buildings.csv
+```
+
+Step 5 rewrites `web/demo_fixtures/`. The badge turns amber ("NISAR L-band GCOV - PROVISIONAL") and the footer credits NISAR.
+
+If the reader can't find a layer, run step 4 and adjust `POL_NAMES` or the coordinate names in `src/acquire/nisar.py`. The provisional product layout may differ from what we expect.
+
+Homes: download Google Open Buildings for the AOI (CSV with `latitude`,`longitude` columns) or pass any GeoJSON of points or polygons.
+
+## Repository layout
+
+```
+.github/workflows/    runs the tests on every push
+aoi/                  area-of-interest boxes for the Jamuna and the Teesta
+cache/  outputs/      downloads and scratch output (gitignored)
+docs/                 methods, NISAR coverage, AI use log, Video 1 plan
+docs/coverage/        NISAR pass dates per reach (from the team's ASF search)
+ground_truth/         dated, sourced erosion and embankment events for the back-test
+src/acquire/          NISAR GCOV reader (crop to AOI, align grids)
+src/compute/          the science: water mask, land lost, retreat, homes near bank, risk. No AI.
+src/pipeline/         build_demo.py (scenes -> demo fixtures), synthetic.py (test scenes)
+tests/                unit tests for src/compute, the reader and the tools
+tools/                pass dates, coverage check and download, HDF5 inspector, ground-truth checker
+web/                  offline demo: MapLibre swipe map, risk cells, Bangla alert
+```
+
+## Team AlphaMatrix
+
+| Member | Role |
+| --- | --- |
+| _name_ | Team lead |
+| _name_ | Radar lead (SAR) |
+| _name_ | Geospatial |
+| _name_ | ML and back-test |
+| _name_ | Backend |
+| _name_ | Full-stack and demo |
+| _name_ | Story, video and alerts |
+
+How we work together: [`CONTRIBUTING.md`](CONTRIBUTING.md).
+
+## Rules we follow
+
+- All science lives in `src/compute`, in tested functions. AI tools never compute a number shown to users.
+- Every figure in the interface traces to `stats.json` (shown in the Methods drawer).
+- Alerts use fixed templates filled from computed numbers.
+- NISAR output is labelled provisional; synthetic output is labelled synthetic.
+- AI use is logged in `docs/AI_USE.md` as we go.
+
+## Data and credits
+
+- NASA-ISRO NISAR L-band L2 GCOV, via NASA Alaska Satellite Facility DAAC (provisional)
+- Sentinel-1 (ESA, Copernicus) via ASF, for history and fallback
+- Google Open Buildings (homes), news reports listed in `ground_truth/events.csv`
+- MapLibre GL JS 4.7.1 (BSD-3-Clause, `web/vendor/MAPLIBRE_LICENSE.txt`)
+
+Licence: Apache-2.0 (see `LICENSE`).
