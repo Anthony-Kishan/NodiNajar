@@ -24,17 +24,13 @@ from collections import defaultdict
 from datetime import date, datetime
 from pathlib import Path
 
-try:
-    import asf_search as asf
-    from shapely.geometry import shape
-except ImportError:
-    sys.exit("Missing packages. Run: pip install -r requirements.txt")
 
 ROOT = Path(__file__).resolve().parents[1]
 REPEAT_DAYS = 12
 
 
 def load_bbox(path):
+    from shapely.geometry import shape
     data = json.loads(Path(path).read_text())
     geom = data["features"][0]["geometry"] if data.get("type") == "FeatureCollection" else data.get("geometry", data)
     return list(shape(geom).bounds)   # west, south, east, north
@@ -57,6 +53,10 @@ def main():
     ap.add_argument("--products", nargs="+", default=["GCOV", "GUNW"], help="NISAR L2 products")
     ap.add_argument("--out", default=str(ROOT / "docs" / "coverage"), help="Folder for the CSV")
     args = ap.parse_args()
+    try:
+        import asf_search as asf
+    except ImportError:
+        sys.exit("Missing packages. Run: pip install -r requirements.txt")
 
     bbox = load_bbox(args.aoi)
     name = Path(args.aoi).stem
