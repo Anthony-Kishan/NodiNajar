@@ -4,7 +4,7 @@
 
 NodiNajar uses NASA-ISRO NISAR L-band radar, which sees through monsoon cloud, to measure how far riverbanks move between passes. It marks 500 m cells where the bank is retreating toward homes and turns that into a Bangla voice and SMS alert. The proof site is the Jamuna River in Sirajganj, Bangladesh.
 
-> **Data status:** NISAR products are **provisional** (validated at a limited set of sites). The demo currently ships with **synthetic test scenes** placed on real NISAR pass dates. The interface says so in red until real NISAR scenes are loaded. Never present synthetic output as real.
+> **Data status:** NISAR products are **provisional** (validated at a limited set of sites). The demo currently ships with **synthetic test scenes** placed on the real track 69 pass dates. The interface says so in red until real NISAR scenes are loaded. Never present synthetic output as real.
 
 ## Run the demo (no internet needed)
 
@@ -18,36 +18,38 @@ Drag the white handle to swipe between two radar passes. Click a red or amber ce
 python -m venv .venv
 source .venv/bin/activate              # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-pytest -q                              # 11 tests, all should pass
+pytest -q                              # 13 tests, all should pass
 ```
 
 ## Load real NISAR data (target: before 12 November)
 
-NISAR passed over the Jamuna reach on 31 dates from 18 June to 29 September 2026, in 4 repeat cycles of 7 or 8 passes. We plan to use the **18 Jun cycle**, which also covers the Teesta. Details: [`docs/COVERAGE.md`](docs/COVERAGE.md).
+We use **NISAR track 69, frame 14**: 8 GCOV dates from 18 June to 22 September 2026, each covering 100% of the Jamuna box. Each file is about 7 GB, so we read only our box (about 2% of a frame) straight from NASA's servers. Details: [`docs/COVERAGE.md`](docs/COVERAGE.md).
 
 ```bash
-# 1. Earthdata token: urs.earthdata.nasa.gov > profile > Generate Token
+# 0. Real preview images for video and slides (no login, about 2 minutes)
+python tools/browse_previews.py
+
+# 1. Earthdata login: urs.earthdata.nasa.gov > profile > Generate Token
 export EARTHDATA_TOKEN="..."           # PowerShell: $env:EARTHDATA_TOKEN="..."
 
-# 2. Pass dates per repeat cycle (no login needed)
-python tools/asf_pass_dates.py --aoi aoi/jamuna_sirajganj.geojson --products GCOV
+# 2. Look inside one real file without downloading it (metadata + a quick-look of our box)
+python tools/inspect_h5.py "$(sed -n 2p docs/coverage/gcov_jamuna_track069_frame014.csv | cut -d, -f11)" --quicklook auto --db
 
-# 3. Confirm track/frame numbers for GCOV, then download from ONE track/frame
-python tools/check_coverage.py --aoi aoi/jamuna_sirajganj.geojson --products GCOV
-python tools/check_coverage.py --aoi aoi/jamuna_sirajganj.geojson --products GCOV --download 2
+# 3. Pull our box from 2 dates, then all 8 (small .npz files in cache/subsets/)
+python tools/fetch_subset.py --csv docs/coverage/gcov_jamuna_track069_frame014.csv --limit 2
+python tools/fetch_subset.py --csv docs/coverage/gcov_jamuna_track069_frame014.csv
 
-# 4. Look inside one file, note the layer path, EPSG and water dB
-python tools/inspect_h5.py cache/nisar/<file>.h5 --quicklook auto --db
-
-# 5. Build the demo from real scenes (+ Open Buildings CSV for homes)
-python -m src.pipeline.build_demo --scenes cache/nisar/*.h5 --buildings cache/open_buildings.csv
+# 4. Build the demo from the subsets (+ Open Buildings CSV for homes)
+python -m src.pipeline.build_demo --subsets cache/subsets/*.npz --buildings cache/open_buildings.csv
 ```
 
-Step 5 rewrites `web/demo_fixtures/`. The badge turns amber ("NISAR L-band GCOV - PROVISIONAL") and the footer credits NISAR.
+Step 4 rewrites `web/demo_fixtures/`. The badge turns amber ("NISAR L-band GCOV - PROVISIONAL") and the footer credits NISAR.
 
-If the reader can't find a layer, run step 4 and adjust `POL_NAMES` or the coordinate names in `src/acquire/nisar.py`. The provisional product layout may differ from what we expect.
+If step 2 or 3 can't find a layer, send the step 2 output to whoever maintains `src/acquire/nisar.py`. The provisional product layout may differ from what we expect.
 
 Homes: download Google Open Buildings for the AOI (CSV with `latitude`,`longitude` columns) or pass any GeoJSON of points or polygons.
+
+To search coverage again: `tools/asf_pass_dates.py` (dates per repeat cycle) and `tools/check_coverage.py` (track, frame and size per product).
 
 ## Repository layout
 
@@ -62,7 +64,7 @@ src/acquire/          NISAR GCOV reader (crop to AOI, align grids)
 src/compute/          the science: water mask, land lost, retreat, homes near bank, risk. No AI.
 src/pipeline/         build_demo.py (scenes -> demo fixtures), synthetic.py (test scenes)
 tests/                unit tests for src/compute, the reader and the tools
-tools/                pass dates, coverage check and download, HDF5 inspector, ground-truth checker
+tools/                coverage search, box-only NISAR reader (fetch_subset), previews, HDF5 inspector, ground-truth checker
 web/                  offline demo: MapLibre swipe map, risk cells, Bangla alert
 ```
 

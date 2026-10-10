@@ -2,7 +2,10 @@
 """
 build_demo.py: turn radar scenes into the files the web demo reads.
 
-Real NISAR (after downloading GCOV files with tools/check_coverage.py):
+Real NISAR, from small subsets (tools/fetch_subset.py, recommended):
+  python -m src.pipeline.build_demo --subsets cache/subsets/*.npz --buildings cache/open_buildings.csv
+
+Real NISAR, from full GCOV files on disk:
   python -m src.pipeline.build_demo --scenes cache/nisar/*.h5 --buildings cache/open_buildings.csv
 
 Synthetic test data (works offline, labelled SYNTHETIC everywhere):
@@ -85,6 +88,7 @@ def corners(ref, to_ll):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--scenes", nargs="*", help="NISAR GCOV .h5 files (same track/frame)")
+    ap.add_argument("--subsets", nargs="*", help="Cropped scenes from tools/fetch_subset.py (.npz)")
     ap.add_argument("--synthetic", action="store_true", help="Use synthetic test scenes")
     ap.add_argument("--aoi", default=str(ROOT / "aoi" / "jamuna_sirajganj.geojson"))
     ap.add_argument("--pol", default=None, help="HHHH, VVVV ... (default: first found)")
@@ -100,12 +104,13 @@ def main():
         scenes = synthetic.scenes(bbox)
         homes_ll = synthetic.buildings(bbox)
         mode = "synthetic"
-    elif args.scenes:
-        scenes = [nisar.read_gcov(p, bbox, args.pol) for p in args.scenes]
+    elif args.scenes or args.subsets:
+        scenes = ([nisar.read_gcov(p, bbox, args.pol) for p in args.scenes] if args.scenes
+                  else [nisar.load_scene(p) for p in args.subsets])
         homes_ll = load_buildings(args.buildings) if args.buildings else np.zeros((0, 2))
         mode = "nisar"
     else:
-        sys.exit("Give --scenes FILES or --synthetic")
+        sys.exit("Give --subsets FILES, --scenes FILES or --synthetic")
 
     scenes.sort(key=lambda s: s.date)
     if len(scenes) < 2:
@@ -155,9 +160,21 @@ def main():
         homes_rc, near = np.zeros((0, 2)), np.zeros(0, bool)
 
     cells = change.summarise_cells(lost, retreat, pixel, args.cell)
+    # Retreat history per cell, pass by pass, relative to the first date.
+    # One distance transform per date (not per cell): at 10 m a scene is ~15 million pixels.
+    history = [[] for _ in cells]
+    for m in masks:
+        li_all = change.land_lost(first, m)
+        ri_all = change.retreat_distance(m, li_all, pixel)
+        for k, c in enumerate(cells):
+            li = li_all[c["r0"]:c["r1"], c["c0"]:c["c1"]]
+            history[k].append(round(float(np.percentile(ri_all[c["r0"]:c["r1"], c["c0"]:c["c1"]][li], 95)), 1)
+                              if li.any() else 0.0)
+        del li_all, ri_all
     pad = int(round(args.near / pixel))
     features, at_risk_idx = [], set()
     for k, c in enumerate(cells):
+        c["history_m"] = history[k]
         if len(homes_rc):
             sel = ((homes_rc[:, 0] >= c["r0"] - pad) & (homes_rc[:, 0] < c["r1"] + pad) &
                    (homes_rc[:, 1] >= c["c0"] - pad) & (homes_rc[:, 1] < c["c1"] + pad) & near)
@@ -168,16 +185,6 @@ def main():
         c["level"] = change.risk_level(c["retreat_m"], c["homes_near"])
         if c["level"] != "green":
             at_risk_idx.update(idx.tolist())
-        # retreat history for this cell, pass by pass, relative to the first date
-        hist = []
-        for i, m in enumerate(masks):
-            li = change.land_lost(first, m)[c["r0"]:c["r1"], c["c0"]:c["c1"]]
-            if li.any():
-                ri = change.retreat_distance(m, change.land_lost(first, m), pixel)[c["r0"]:c["r1"], c["c0"]:c["c1"]][li]
-                hist.append(round(float(np.percentile(ri, 95)), 1))
-            else:
-                hist.append(0.0)
-        c["history_m"] = hist
         xs = [ref.x[c["c0"]] - pixel / 2, ref.x[c["c1"] - 1] + pixel / 2]
         ys = [ref.y[c["r0"]] + pixel / 2, ref.y[c["r1"] - 1] - pixel / 2]
         lon, lat = to_ll.transform([xs[0], xs[1], xs[1], xs[0], xs[0]], [ys[0], ys[0], ys[1], ys[1], ys[0]])

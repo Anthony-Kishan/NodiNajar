@@ -9,6 +9,8 @@ outputs/*
 *.tiff
 *.zip
 *.SAFE/
+*.npz
+asf-results-*.json
 
 # secrets
 .env

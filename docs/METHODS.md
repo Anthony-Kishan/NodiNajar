@@ -2,7 +2,7 @@
 
 Every number in the demo comes from these steps, implemented in `src/compute` and tested in `tests/`.
 
-1. **Read and crop.** Read the NISAR L2 GCOV backscatter layer (HHHH, else VVVV) and crop it to the AOI box. Every later scene is resampled to the first scene's grid by nearest neighbour (`src/acquire/nisar.py`). All scenes must come from the same track and frame. We plan to use the 18 Jun repeat cycle (8 passes over the Jamuna, see `docs/COVERAGE.md`).
+1. **Read and crop.** Read the NISAR L2 GCOV backscatter layer (`/science/LSAR/GCOV/grids/frequencyA/HHHH`, 10 m pixels, EPSG 32646) and crop it to the AOI box. `tools/fetch_subset.py` reads only the box over HTTPS (about 45 MB per date instead of 7 GB). Every later scene is resampled to the first scene's grid by nearest neighbour (`src/acquire/nisar.py`). All scenes must come from the same track and frame. We plan to use the 18 Jun repeat cycle (8 passes over the Jamuna, see `docs/COVERAGE.md`).
 2. **Decibels and speckle.** Convert linear power to dB (10·log10) and apply a 5×5 median filter.
 3. **Water mask.** Pixels darker than the threshold are water. The threshold comes from Otsu's method per scene unless `--threshold` is given. Water patches under 50 px are removed and land holes under 20 px are filled.
 4. **Land lost.** A pixel is land lost if it was land on the first date and water on the **last two** dates. Requiring two dates filters out short floods that recede. With only two scenes the rule falls back to one date and is marked unconfirmed.
@@ -15,7 +15,7 @@ Every number in the demo comes from these steps, implemented in `src/compute` an
 
 ## Known limits
 
-- **Minimum detectable change:** about 2 pixels (for example 40 m at 20 m spacing).
+- **Minimum detectable change:** about 2 pixels. Our GCOV layer (frequency A) has 10 m pixels, so about 20 m.
 - **Flooding vs erosion:** monsoon flooding of low land can look like erosion. The two-date rule reduces this but doesn't remove it. Wet sandbars (chars) can also look like water.
 - **Wind and rain:** wind-roughened water can look bright and be missed.
 - **Provisional data:** NISAR products are provisional.

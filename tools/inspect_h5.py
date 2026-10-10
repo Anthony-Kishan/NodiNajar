@@ -11,12 +11,19 @@ Examples
   python tools/inspect_h5.py file.h5 --quicklook /science/LSAR/GCOV/grids/frequencyA/HHHH --db
   python tools/inspect_h5.py file.h5 --max-depth 4
 
+Remote (no download, needs your Earthdata login):
+  python tools/inspect_h5.py https://nisar.asf.earthdatacloud.nasa.gov/.../file.h5 --quicklook auto --db
+  Over the network the quick-look covers only the AOI box (--aoi), never the whole 7 GB frame.
+
 It does not assume exact NISAR paths: it searches by layer name, so it keeps
 working if the product layout changes between releases.
 """
 import argparse
 import sys
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
 try:
     import h5py
@@ -127,17 +134,49 @@ def quicklook(f, path, out_png, db, max_px=1500):
               " note the value you see for the Jamuna channel.")
 
 
+def quicklook_aoi(src, layer, aoi, out_png, db):
+    """Quick-look of the AOI crop only (used for remote files)."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from src.acquire import nisar
+    from src.pipeline.build_demo import load_bbox
+
+    sc = nisar.read_gcov(src, load_bbox(aoi), layer.rsplit("/", 1)[-1])
+    arr = sc.power.astype("float64")
+    if db:
+        with np.errstate(divide="ignore", invalid="ignore"):
+            arr = 10 * np.log10(arr)
+    arr[~np.isfinite(arr)] = np.nan
+    lo, hi = np.nanpercentile(arr, [2, 98])
+    fig, ax = plt.subplots(figsize=(6, 6 * arr.shape[0] / arr.shape[1]))
+    im = ax.imshow(arr, cmap="gray", vmin=lo, vmax=hi)
+    ax.set_title(f"{sc.pol} {sc.date}, AOI crop, {sc.pixel_m:g} m" + ("  [dB]" if db else "") + "\nNISAR GCOV PROVISIONAL")
+    ax.set_axis_off()
+    fig.colorbar(im, ax=ax, fraction=0.03)
+    fig.savefig(out_png, dpi=120, bbox_inches="tight")
+    print(f"\nQuick-look of the AOI saved: {out_png}")
+    print(f"  crop {arr.shape}, pixel {sc.pixel_m:g} m, EPSG {sc.epsg}, valid {np.isfinite(arr).mean() * 100:.0f}%, "
+          f"2-98% range {lo:.2f} to {hi:.2f}")
+    if db:
+        print("  Tip: note the dB value of the Jamuna channel; open water is usually the darkest cluster.")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("file", help="NISAR .h5 file")
+    ap.add_argument("file", help="NISAR .h5 file or https:// URL")
+    ap.add_argument("--aoi", default=str(ROOT / "aoi" / "jamuna_sirajganj.geojson"),
+                    help="Box for the remote quick-look")
     ap.add_argument("--max-depth", type=int, default=8, help="How deep to print the tree")
     ap.add_argument("--quicklook", help="'auto' or a full dataset path to render as PNG")
     ap.add_argument("--db", action="store_true", help="Show backscatter in decibels")
     ap.add_argument("--out", default="outputs", help="Folder for the PNG")
     args = ap.parse_args()
 
-    with h5py.File(args.file, "r") as f:
-        print(f"File: {args.file}\n")
+    from src.acquire import nisar
+    remote = nisar.is_url(args.file)
+    with nisar.open_h5(args.file) as f:
+        print(f"File: {args.file}" + ("  (remote: reading metadata only)" if remote else "") + "\n")
         found = walk(f, args.max_depth)
 
         print("\nLayers NodiNajar will use:")
@@ -153,8 +192,12 @@ def main():
             if not path:
                 sys.exit("No 2-D layer found for --quicklook auto; pass a dataset path.")
             Path(args.out).mkdir(parents=True, exist_ok=True)
-            png = Path(args.out) / f"{Path(args.file).stem}_{path.rsplit('/', 1)[-1]}.png"
-            quicklook(f, path, png, db=args.db or path.endswith(("HHHH", "VVVV", "HVHV", "VHVH")))
+            png = Path(args.out) / f"{nisar.granule_name(args.file)}_{path.rsplit('/', 1)[-1]}.png"
+            db = args.db or path.endswith(("HHHH", "VVVV", "HVHV", "VHVH"))
+            if not remote:
+                quicklook(f, path, png, db=db)
+    if args.quicklook and remote:
+        quicklook_aoi(args.file, path, args.aoi, png, db)
 
 
 if __name__ == "__main__":

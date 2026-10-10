@@ -1,17 +1,22 @@
 """
 Read a NISAR L2 GCOV file and crop it to an area of interest.
 
-The reader searches by layer name instead of hard-coding paths, because the
-provisional product layout may change between releases. Run
-tools/inspect_h5.py on a real file first and adjust POL_NAMES / coordinate
-names here if the layout differs.
+The reader tries the documented GCOV paths first (/science/LSAR/GCOV/grids/
+frequencyA/...), then falls back to searching by layer name, because the
+provisional product layout may change between releases.
+
+`src` can be a local .h5 path or an https:// URL. For a URL, only the bytes of
+the cropped area (plus metadata) are read over the network with your Earthdata
+login, so a 7 GB granule costs tens of MB instead of a full download.
 
 NISAR products are PROVISIONAL (validated at a limited set of sites).
 """
 from __future__ import annotations
 
+import os
 import re
-from dataclasses import dataclass, field
+from contextlib import contextmanager
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
 import h5py
@@ -19,6 +24,8 @@ import numpy as np
 from pyproj import Transformer
 
 POL_NAMES = ("HHHH", "VVVV", "HVHV", "VHVH")
+GRID_GROUPS = ("science/LSAR/GCOV/grids/frequencyA", "science/LSAR/GCOV/grids/frequencyB")
+REMOTE_BLOCK = 8 * 1024 * 1024   # bytes per HTTP range request
 DATE_KEYS = ("zeroDopplerStartTime", "referenceZeroDopplerStartTime")
 
 
@@ -37,6 +44,11 @@ class Scene:
 
 
 def _find(f: h5py.File, leaf: str, prefer_parent: str | None = None):
+    # Fast path: the documented location. Avoids walking the whole file,
+    # which is slow over the network.
+    for parent in ([prefer_parent] if prefer_parent else []) + list(GRID_GROUPS):
+        if parent and f"{parent}/{leaf}" in f and isinstance(f[f"{parent}/{leaf}"], h5py.Dataset):
+            return f"{parent}/{leaf}"
     hits = []
     f.visititems(lambda n, o: hits.append(n) if n.rsplit("/", 1)[-1] == leaf and isinstance(o, h5py.Dataset) else None)
     if prefer_parent:
@@ -68,6 +80,10 @@ def _epsg(f: h5py.File, parent: str) -> int:
 
 
 def _date(f: h5py.File, fallback_name: str) -> str:
+    # NISAR granule names carry the start time (..._20260618T232135_...): no file reads needed.
+    m = re.search(r"_(20\d{2})(\d{2})(\d{2})T\d{6}_", fallback_name)
+    if m:
+        return f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
     for key in DATE_KEYS:
         p = _find(f, key)
         if p:
@@ -80,11 +96,42 @@ def _date(f: h5py.File, fallback_name: str) -> str:
     raise KeyError("Could not find the acquisition date")
 
 
-def read_gcov(path: str | Path, bbox_lonlat: tuple[float, float, float, float],
-              pol: str | None = None) -> Scene:
-    """Read one GCOV file, cropped to bbox (west, south, east, north) in lon/lat."""
-    path = Path(path)
-    with h5py.File(path, "r") as f:
+def is_url(src) -> bool:
+    return str(src).startswith(("http://", "https://", "s3://"))
+
+
+def granule_name(src) -> str:
+    return Path(str(src).split("?", 1)[0]).stem
+
+
+def _https_filesystem():
+    """fsspec filesystem carrying the Earthdata login (token, env vars or ~/.netrc)."""
+    import earthaccess
+    if os.environ.get("EARTHDATA_TOKEN") or os.environ.get("EARTHDATA_USERNAME"):
+        earthaccess.login(strategy="environment")
+    else:
+        earthaccess.login(strategy="netrc")
+    return earthaccess.get_fsspec_https_session()
+
+
+@contextmanager
+def open_h5(src, fs=None):
+    """Open a local path or a remote URL as an h5py.File. `fs` overrides the Earthdata filesystem (tests)."""
+    if is_url(src):
+        fs = fs or _https_filesystem()
+        with fs.open(str(src), "rb", block_size=REMOTE_BLOCK, cache_type="blockcache") as fobj:
+            with h5py.File(fobj, "r") as f:
+                yield f
+    else:
+        with h5py.File(src, "r") as f:
+            yield f
+
+
+def read_gcov(src: str | Path, bbox_lonlat: tuple[float, float, float, float],
+              pol: str | None = None, fs=None) -> Scene:
+    """Read one GCOV file or URL, cropped to bbox (west, south, east, north) in lon/lat."""
+    granule = granule_name(src)
+    with open_h5(src, fs) as f:
         layer = None
         for name in ([pol] if pol else POL_NAMES):
             layer = _find(f, name)
@@ -92,7 +139,7 @@ def read_gcov(path: str | Path, bbox_lonlat: tuple[float, float, float, float],
                 pol = name
                 break
         if not layer:
-            raise KeyError(f"No backscatter layer {POL_NAMES} in {path.name}")
+            raise KeyError(f"No backscatter layer {POL_NAMES} in {granule}")
         parent = layer.rsplit("/", 1)[0]
         xp, yp = _find(f, "xCoordinates", parent), _find(f, "yCoordinates", parent)
         if not (xp and yp):
@@ -106,18 +153,35 @@ def read_gcov(path: str | Path, bbox_lonlat: tuple[float, float, float, float],
         cols = np.flatnonzero((x >= min(xs)) & (x <= max(xs)))
         rows = np.flatnonzero((y >= min(ys)) & (y <= max(ys)))
         if cols.size == 0 or rows.size == 0:
-            raise ValueError(f"{path.name} does not cover the area of interest")
+            raise ValueError(f"{granule} does not cover the area of interest")
         r0, r1, c0, c1 = rows.min(), rows.max() + 1, cols.min(), cols.max() + 1
         power = f[layer][r0:r1, c0:c1].astype("float32")
         fill = f[layer].attrs.get("_FillValue")
         if fill is not None:
             power[power == np.ravel(fill)[0]] = np.nan
         power[power <= 0] = np.nan
-        date = _date(f, path.name)
+        date = _date(f, granule)
 
     pixel_m = float(abs(x[1] - x[0]))
     return Scene(power=power, x=x[c0:c1], y=y[r0:r1], epsg=epsg, date=date,
-                 granule=path.stem, pol=pol, pixel_m=pixel_m)
+                 granule=granule, pol=pol, pixel_m=pixel_m)
+
+
+def save_scene(scene: Scene, path: str | Path) -> Path:
+    """Save a cropped scene as a small .npz so the demo never needs the 7 GB file again."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    meta = {k: v for k, v in asdict(scene).items() if k not in ("power", "x", "y")}
+    np.savez_compressed(path, power=scene.power, x=scene.x, y=scene.y,
+                        meta=np.array(repr(meta)))
+    return path
+
+
+def load_scene(path: str | Path) -> Scene:
+    import ast
+    with np.load(path, allow_pickle=False) as z:
+        meta = ast.literal_eval(str(z["meta"]))
+        return Scene(power=z["power"], x=z["x"], y=z["y"], **meta)
 
 
 def align_to(ref: Scene, other: Scene) -> np.ndarray:
