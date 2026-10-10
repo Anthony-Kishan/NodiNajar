@@ -34,7 +34,7 @@ from src.compute import bankline, change, water  # noqa: E402
 from src.acquire import nisar  # noqa: E402
 
 OUT = ROOT / "web" / "demo_fixtures"
-MAX_PX = 1600
+MAX_PX = 2700   # about 30 m display pixels on the 80 km Jamuna box: sharp enough for video close-ups
 
 
 def load_bbox(aoi_path):
@@ -210,17 +210,27 @@ def main():
     for old in OUT.glob("*"):
         old.unlink()
 
+    # Thresholds first, on a 1-in-3 sample of each scene (fast), so dates without a
+    # clear water/land valley can borrow the season's typical value.
+    how = ["fixed" if args.threshold is not None else args.method] * len(scenes)
+    thresholds = [args.threshold] * len(scenes)
+    if args.threshold is None and args.method == "valley":
+        from scipy import ndimage as _nd
+        per = [water.valley_or_none(_nd.median_filter(water.to_db(s.power[::3, ::3]), 3)) for s in scenes]
+        thresholds, how = water.season_thresholds(per)
+
     masks, scene_meta = [], []
     for i, s in enumerate(scenes):
         power = s.power if i == 0 else nisar.align_to(ref, s)
         db = water.speckle_filter(water.to_db(power))
-        m, thr = water.water_mask(db, args.threshold, method=args.method)
+        m, thr = water.water_mask(db, thresholds[i], method="otsu" if thresholds[i] is None else args.method)
         masks.append(m)
         png_db(db, OUT / f"scene_{i:02d}.png", step=step)
         scene_meta.append({"index": i, "date": s.date, "granule": s.granule, "pol": s.pol,
-                           "threshold_db": round(thr, 2), "water_km2": round(m.sum() * pixel ** 2 / 1e6, 2),
+                           "threshold_db": round(thr, 2), "threshold_from": how[i],
+                           "water_km2": round(m.sum() * pixel ** 2 / 1e6, 2),
                            "image": f"scene_{i:02d}.png"})
-        print(f"  {s.date}  threshold {thr:6.2f} dB  water {scene_meta[-1]['water_km2']:8.2f} km2")
+        print(f"  {s.date}  threshold {thr:6.2f} dB ({how[i]})  water {scene_meta[-1]['water_km2']:8.2f} km2")
 
     first, last = masks[0], masks[-1]
 

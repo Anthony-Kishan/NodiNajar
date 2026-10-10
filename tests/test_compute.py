@@ -84,3 +84,10 @@ def test_near_river_ignores_small_ponds():
     near = change.near_river(m, pixel_m=10.0, min_area_km2=1.0, within_m=300)
     assert near[150, 120] and near[150, 160] and not near[150, 200]
     assert not near[22, 252]        # the pond is not river
+
+
+def test_season_thresholds_fill_dates_without_a_valley():
+    thr, how = water.season_thresholds([-15.0, None, -15.4, -14.9, None])
+    assert thr[1] == thr[4] == -15.0 and thr[2] == -15.4
+    assert how[0] == "valley" and how[1].startswith("median of 3")
+    assert water.season_thresholds([None, None])[1] == ["otsu", "otsu"]

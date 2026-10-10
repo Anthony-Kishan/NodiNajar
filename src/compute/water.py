@@ -45,6 +45,42 @@ def otsu_threshold(db: np.ndarray, bins: int = 256, lo: float = -35.0, hi: float
     return float(centers[int(np.argmax(between))])
 
 
+def valley_or_none(db: np.ndarray, split_db: float = -15.0, bins: int = 200,
+                   lo: float = -30.0, hi: float = 5.0, smooth: float = 3.0) -> float | None:
+    """The histogram valley between water and land, or None when there is no clear one."""
+    v = db[np.isfinite(db)]
+    hist, edges = np.histogram(v, bins=bins, range=(lo, hi))
+    centers = (edges[:-1] + edges[1:]) / 2
+    hs = ndimage.gaussian_filter1d(hist.astype("float64"), smooth)
+    left, right = centers < split_db, centers >= split_db
+    if hs[left].max(initial=0) <= 0 or hs[right].max(initial=0) <= 0:
+        return None
+    p1 = int(np.argmax(np.where(left, hs, -1)))
+    p2 = int(np.argmax(np.where(right, hs, -1)))
+    k = p1 + int(np.argmin(hs[p1:p2 + 1]))
+    if hs[k] > 0.8 * min(hs[p1], hs[p2]):      # a real valley is clearly lower than the smaller peak
+        return None
+    return float(centers[k])
+
+
+def season_thresholds(per_scene: list[float | None]) -> tuple[list[float], list[str]]:
+    """
+    Fill scenes without a clear valley with the median threshold of the scenes that have one.
+
+    On the Jamuna in 2026 the water peak sits at -17 to -18 dB on every date, but on
+    4 of 8 dates wet land fills in the dip between water and land, and Otsu then lands
+    at -7.7 to -11.6 dB (marking up to 78% of the box as water). The dates with a clear
+    valley all agree on about -15 dB, so that is used for the others.
+    Returns (thresholds, how each was chosen).
+    """
+    found = [t for t in per_scene if t is not None]
+    if not found:
+        return [None] * len(per_scene), ["otsu"] * len(per_scene)
+    fill = float(np.median(found))
+    return ([t if t is not None else fill for t in per_scene],
+            ["valley" if t is not None else f"median of {len(found)} valley dates" for t in per_scene])
+
+
 def valley_threshold(db: np.ndarray, split_db: float = -15.0, bins: int = 200,
                      lo: float = -30.0, hi: float = 5.0, smooth: float = 3.0) -> float:
     """
