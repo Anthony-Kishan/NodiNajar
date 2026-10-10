@@ -72,13 +72,11 @@ web/                  offline demo: MapLibre swipe map, risk cells, Bangla alert
 
 | Member | Role |
 | --- | --- |
-| _name_ | Team lead |
-| _name_ | Radar lead (SAR) |
-| _name_ | Geospatial |
-| _name_ | ML and back-test |
-| _name_ | Backend |
-| _name_ | Full-stack and demo |
-| _name_ | Story, video and alerts |
+| Kishan Modhu | Team lead, ML and back-test |
+| Kazi Majedul Islam | Backend, Geospatial |
+| Mahbub Al Hasan Akib | Radar lead (SAR) |
+| Sajib Rahman | Full-stack and demo |
+| Anika Rahman | Story, video and presentation |
 
 How we work together: [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
