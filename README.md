@@ -18,12 +18,12 @@ Drag the white handle to swipe between two radar passes. Click a red or amber ce
 python -m venv .venv
 source .venv/bin/activate              # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-pytest -q                              # 21 tests, all should pass
+pytest -q                              # 23 tests, all should pass
 ```
 
 ## Load real NISAR data (target: before 12 November)
 
-We use **NISAR track 69, frame 14**: 8 GCOV dates from 18 June to 22 September 2026, each covering 100% of the Jamuna box. Each file is about 7 GB, so we read only our box (about 2% of a frame) straight from NASA's servers. Details: [`docs/COVERAGE.md`](docs/COVERAGE.md).
+We use **NISAR track 69, frame 14**: 8 GCOV dates from 18 June to 22 September 2026, each covering 100% of the Jamuna box (24.00–24.72° N, 89.60–89.92° E, Kazipur to Chauhali). Each file is about 7 GB, so we read only our box (about 2% of a frame) straight from NASA's servers. Details: [`docs/COVERAGE.md`](docs/COVERAGE.md).
 
 ```bash
 # 0. Real preview images for video and slides (no login, about 2 minutes)
@@ -47,7 +47,7 @@ Step 4 rewrites `web/demo_fixtures/`. The badge turns amber ("NISAR L-band GCOV 
 
 If step 2 or 3 can't find a layer, send the step 2 output to whoever maintains `src/acquire/nisar.py`. The provisional product layout may differ from what we expect.
 
-Homes: download Google Open Buildings for the AOI (CSV with `latitude`,`longitude` columns) or pass any GeoJSON of points or polygons.
+Homes and ground-truth events: step-by-step guide in [`docs/GUIDE_HOMES_AND_EVENTS.md`](docs/GUIDE_HOMES_AND_EVENTS.md).
 
 To search coverage again: `tools/asf_pass_dates.py` (dates per repeat cycle) and `tools/check_coverage.py` (track, frame and size per product).
 

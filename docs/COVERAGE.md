@@ -2,6 +2,8 @@
 
 **Decision: use track 69, frame 14 (ascending) for the Jamuna.** It has a GCOV file on all 8 dates of the 18 Jun cycle, each covering 100% of our box.
 
+**Box changed on 10 October:** now 24.00–24.72° N, 89.60–89.92° E, to include Chauhali upazila (24°01′–24°17′ N), where most of our 2026 ground-truth events are. Still fully inside the track 69 footprint on all 8 dates (checked by `tests/test_tools.py`). The coverage table below was computed on the earlier, smaller box. Subsets fetched before this change must be fetched again.
+
 ## GCOV check (10 October 2026)
 
 Searched ASF for NISAR L2 GCOV over `aoi/jamuna_sirajganj.geojson`, 17 June to 30 September 2026: 36 products. Coverage is the share of our box inside each granule footprint.
@@ -34,7 +36,7 @@ Each GCOV granule is about 7 GB. All 8 dates on track 69 total **54 GB**. Our bo
 | Pixel size | 10 m (frequency A); a coarser 80 m copy sits in frequency B |
 | Full frame | 34,200 × 33,552 pixels |
 | Projection | EPSG 32646 (UTM 46N) |
-| Our box | 5,114 × 2,856 pixels, 100% valid |
+| Our box (first, smaller version) | 5,114 × 2,856 pixels, 100% valid |
 | HH range in the box | about −21 to +0.6 dB (2nd to 98th percentile) |
 | Subset per date | about 44 MB, about 2 minutes over home internet |
 
