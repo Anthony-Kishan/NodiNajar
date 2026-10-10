@@ -36,6 +36,23 @@ def retreat_distance(mask_b: np.ndarray, lost: np.ndarray, pixel_m: float) -> np
     return np.where(lost, dist_to_land, 0.0)
 
 
+def near_river(water: np.ndarray, pixel_m: float, min_area_km2: float = 2.0,
+               within_m: float = 1000.0) -> np.ndarray:
+    """
+    Pixels within `within_m` of the main river on this date. The main river is
+    every connected water body of at least `min_area_km2`. Used to ignore ponds
+    and flooded fields far from the channel, which are not bank erosion.
+    """
+    labels, n = ndimage.label(water)
+    if n == 0:
+        return np.zeros_like(water, dtype=bool)
+    sizes = ndimage.sum(water, labels, range(1, n + 1)) * pixel_m ** 2 / 1e6
+    river = np.isin(labels, np.flatnonzero(sizes >= min_area_km2) + 1)
+    if not river.any():
+        return np.zeros_like(water, dtype=bool)
+    return ndimage.distance_transform_edt(~river) * pixel_m <= within_m
+
+
 def summarise_cells(lost: np.ndarray, retreat: np.ndarray, pixel_m: float,
                     cell_m: float = 500.0) -> list[dict]:
     """

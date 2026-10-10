@@ -1,7 +1,7 @@
 {
-  "mode": "synthetic",
-  "label": "SYNTHETIC TEST DATA - NOT REAL",
-  "generated_utc": "2026-10-09T22:55:36+00:00",
+  "mode": "nisar",
+  "label": "NISAR L-band GCOV - PROVISIONAL",
+  "generated_utc": "2026-10-10T11:38:40+00:00",
   "aoi_bbox": [
     89.6143,
     24.2104,
@@ -9,117 +9,124 @@
     24.666
   ],
   "epsg": 32646,
-  "pixel_m": 30.0,
-  "display_step": 2,
+  "pixel_m": 10.0,
+  "display_step": 4,
   "image_corners": [
     [
-      89.602105,
-      24.665724
+      89.602153,
+      24.665688
     ],
     [
-      89.884216,
-      24.671847
+      89.883968,
+      24.671805
     ],
     [
-      89.895544,
-      24.210556
+      89.895295,
+      24.210604
     ],
     [
-      89.614454,
-      24.204562
+      89.6145,
+      24.204616
     ]
   ],
   "scenes": [
     {
       "index": 0,
       "date": "2026-06-18",
-      "granule": "SYNTHETIC_GCOV_20260618",
+      "granule": "NISAR_L2_PR_GCOV_023_069_A_014_4005_DHDH_A_20260618T232135_20260618T232210_P05023_N_F_J_001",
       "pol": "HHHH",
-      "threshold_db": -15.86,
-      "water_km2": 169.24,
+      "threshold_db": -15.04,
+      "water_km2": 263.4,
       "image": "scene_00.png"
     },
     {
       "index": 1,
       "date": "2026-06-30",
-      "granule": "SYNTHETIC_GCOV_20260630",
+      "granule": "NISAR_L2_PR_GCOV_024_069_A_014_4005_DHDH_A_20260630T232134_20260630T232209_P05023_N_F_J_001",
       "pol": "HHHH",
-      "threshold_db": -15.86,
-      "water_km2": 169.45,
+      "threshold_db": -15.21,
+      "water_km2": 353.08,
       "image": "scene_01.png"
     },
     {
       "index": 2,
       "date": "2026-07-12",
-      "granule": "SYNTHETIC_GCOV_20260712",
+      "granule": "NISAR_L2_PR_GCOV_025_069_A_014_4005_DHDH_A_20260712T232134_20260712T232208_P05023_N_F_J_001",
       "pol": "HHHH",
-      "threshold_db": -15.86,
-      "water_km2": 171.48,
+      "threshold_db": -10.86,
+      "water_km2": 575.6,
       "image": "scene_02.png"
     },
     {
       "index": 3,
       "date": "2026-07-24",
-      "granule": "SYNTHETIC_GCOV_20260724",
+      "granule": "NISAR_L2_PR_GCOV_026_069_A_014_4005_DHDH_A_20260724T232133_20260724T232208_P05023_N_F_J_001",
       "pol": "HHHH",
-      "threshold_db": -15.86,
-      "water_km2": 171.96,
+      "threshold_db": -13.64,
+      "water_km2": 594.01,
       "image": "scene_03.png"
     },
     {
       "index": 4,
       "date": "2026-08-17",
-      "granule": "SYNTHETIC_GCOV_20260817",
+      "granule": "NISAR_L2_PR_GCOV_028_069_A_014_4005_DHDH_A_20260817T232132_20260817T232206_P05023_N_F_J_001",
       "pol": "HHHH",
-      "threshold_db": -15.86,
-      "water_km2": 172.45,
+      "threshold_db": -10.08,
+      "water_km2": 766.08,
       "image": "scene_04.png"
     },
     {
       "index": 5,
       "date": "2026-08-29",
-      "granule": "SYNTHETIC_GCOV_20260829",
+      "granule": "NISAR_L2_PR_GCOV_029_069_A_014_4005_DHDH_A_20260829T232132_20260829T232206_P05023_N_F_J_001",
       "pol": "HHHH",
-      "threshold_db": -15.86,
-      "water_km2": 172.49,
+      "threshold_db": -11.33,
+      "water_km2": 692.69,
       "image": "scene_05.png"
     },
     {
       "index": 6,
       "date": "2026-09-10",
-      "granule": "SYNTHETIC_GCOV_20260910",
+      "granule": "NISAR_L2_PR_GCOV_030_069_A_014_4005_DHDH_A_20260910T232131_20260910T232206_P05023_N_F_J_001",
       "pol": "HHHH",
-      "threshold_db": -15.86,
-      "water_km2": 171.44,
+      "threshold_db": -15.04,
+      "water_km2": 394.33,
       "image": "scene_06.png"
     },
     {
       "index": 7,
       "date": "2026-09-22",
-      "granule": "SYNTHETIC_GCOV_20260922",
+      "granule": "NISAR_L2_PR_GCOV_031_069_A_014_4005_DHDH_A_20260922T232132_20260922T232206_P05023_N_F_J_001",
       "pol": "HHHH",
-      "threshold_db": -15.86,
-      "water_km2": 171.33,
+      "threshold_db": -14.86,
+      "water_km2": 349.81,
       "image": "scene_07.png"
     }
   ],
   "period_days": 96,
-  "lost_rule": "land on the first date and water on the last two dates",
+  "lost_rule": "outer bank moved into the land on the first-to-last and first-to-second-last comparison (smaller value kept)",
   "totals": {
-    "land_lost_ha": 210.6,
-    "max_retreat_m": 334.0,
-    "cells_red": 18,
-    "cells_amber": 35,
-    "homes_near_new_bank": 108
+    "land_lost_ha": 133.9,
+    "max_retreat_m": 350.0,
+    "cells_red": 0,
+    "cells_amber": 29,
+    "homes_near_new_bank": 0
+  },
+  "segments": {
+    "ok": 160,
+    "jump": 46,
+    "gap": 0
   },
   "method": {
     "speckle_filter": "median 5x5",
-    "water_rule": "dB below threshold (Otsu per scene unless set); specks < 50 px removed",
-    "retreat": "95th percentile distance from lost pixels to the nearest land on the last date",
+    "water_rule": "dB below threshold (valley per scene); specks < 50 px removed",
+    "river_rule": "river = water bodies >= 2 km2, channels narrower than 200 m ignored",
+    "engine": "bankline",
+    "retreat": "median outward movement of the outer bank per 500 m segment (westmost / eastmost river pixel per row; chars inside the river ignored)",
     "cell_m": 500.0,
     "near_m": 200.0,
     "risk_rule": "red: retreat >= 100 m and homes within near_m; amber: retreat >= 30 m",
-    "uncertainty": "Pixel spacing sets the minimum detectable retreat (about 2 pixels). Flooding of low land can look like erosion; only land that stays water on the last two passes is counted."
+    "uncertainty": "Pixel spacing sets the minimum detectable retreat (about 2 pixels). Rising water can push the bank line outward over low land; only movement that holds on the last two passes is counted. Segments where the bank line switched channel are left out, not guessed."
   },
-  "homes_source": "synthetic points"
+  "homes_source": "none"
 }

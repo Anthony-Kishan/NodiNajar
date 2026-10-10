@@ -18,7 +18,7 @@ Drag the white handle to swipe between two radar passes. Click a red or amber ce
 python -m venv .venv
 source .venv/bin/activate              # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-pytest -q                              # 13 tests, all should pass
+pytest -q                              # 21 tests, all should pass
 ```
 
 ## Load real NISAR data (target: before 12 November)
@@ -61,7 +61,7 @@ docs/                 methods, NISAR coverage, AI use log, Video 1 plan
 docs/coverage/        NISAR pass dates per reach (from the team's ASF search)
 ground_truth/         dated, sourced erosion and embankment events for the back-test
 src/acquire/          NISAR GCOV reader (crop to AOI, align grids)
-src/compute/          the science: water mask, land lost, retreat, homes near bank, risk. No AI.
+src/compute/          the science: water mask, outer bank lines, retreat per segment, homes near bank, risk. No AI.
 src/pipeline/         build_demo.py (scenes -> demo fixtures), synthetic.py (test scenes)
 tests/                unit tests for src/compute, the reader and the tools
 tools/                coverage search, box-only NISAR reader (fetch_subset), previews, HDF5 inspector, ground-truth checker

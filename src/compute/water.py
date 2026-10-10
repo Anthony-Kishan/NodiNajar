@@ -45,15 +45,52 @@ def otsu_threshold(db: np.ndarray, bins: int = 256, lo: float = -35.0, hi: float
     return float(centers[int(np.argmax(between))])
 
 
+def valley_threshold(db: np.ndarray, split_db: float = -15.0, bins: int = 200,
+                     lo: float = -30.0, hi: float = 5.0, smooth: float = 3.0) -> float:
+    """
+    Threshold at the lowest point of the (smoothed) histogram between the water
+    peak (darkest mode, below split_db) and the land peak (above split_db).
+
+    Why not Otsu: on the Jamuna the river is a minority class next to bright,
+    varied farmland, and Otsu lands too high (about -12.7 dB on 18 Jun 2026),
+    marking wet fields and sandbars as water. The valley sat at -15.0 dB, between
+    a water peak at -18.2 dB and a land peak at -10.3 dB. Falls back to Otsu if
+    the histogram has no clear water peak.
+    """
+    v = db[np.isfinite(db)]
+    hist, edges = np.histogram(v, bins=bins, range=(lo, hi))
+    centers = (edges[:-1] + edges[1:]) / 2
+    hs = ndimage.gaussian_filter1d(hist.astype("float64"), smooth)
+    left, right = centers < split_db, centers >= split_db
+    if hs[left].max(initial=0) <= 0 or hs[right].max(initial=0) <= 0:
+        return otsu_threshold(db)
+    p1 = int(np.argmax(np.where(left, hs, -1)))
+    p2 = int(np.argmax(np.where(right, hs, -1)))
+    k = p1 + int(np.argmin(hs[p1:p2 + 1]))
+    # a real valley must be clearly lower than the smaller peak
+    if hs[k] > 0.8 * min(hs[p1], hs[p2]):
+        return otsu_threshold(db)
+    return float(centers[k])
+
+
 def water_mask(db: np.ndarray, threshold_db: float | None = None,
-               min_pixels: int = 50, fill_holes_px: int = 20) -> tuple[np.ndarray, float]:
+               min_pixels: int = 50, fill_holes_px: int = 20,
+               method: str = "valley") -> tuple[np.ndarray, float]:
     """
     Classify water. Returns (mask, threshold_used).
 
-    threshold_db None -> Otsu on this scene. Small specks (< min_pixels) are
-    removed and small land holes inside water (< fill_holes_px) are filled.
+    threshold_db None -> per-scene threshold by `method` ("valley" or "otsu").
+    Small specks (< min_pixels) are removed and small land holes inside water
+    (< fill_holes_px) are filled.
     """
-    thr = otsu_threshold(db) if threshold_db is None else float(threshold_db)
+    if threshold_db is not None:
+        thr = float(threshold_db)
+    elif method == "otsu":
+        thr = otsu_threshold(db)
+    elif method == "valley":
+        thr = valley_threshold(db)
+    else:
+        raise ValueError(f"Unknown threshold method {method!r}")
     m = np.isfinite(db) & (db < thr)
     labels, n = ndimage.label(m)
     if n:

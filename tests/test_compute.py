@@ -61,3 +61,26 @@ def test_risk_levels():
     assert change.risk_level(150, 0) == "amber"
     assert change.risk_level(40, 9) == "amber"
     assert change.risk_level(10, 9) == "green"
+
+
+def test_valley_threshold_sits_between_water_and_land_peaks():
+    rng = np.random.default_rng(1)
+    # minority dark water (20%) next to a broad bright land class, like the Jamuna
+    db = np.concatenate([rng.normal(-18.5, 1.2, 20000), rng.normal(-10.5, 2.5, 80000)])
+    thr = water.valley_threshold(db)
+    assert -16.5 < thr < -13.5
+    assert thr < water.otsu_threshold(db) + 1.0   # never far above Otsu
+
+
+def test_valley_threshold_falls_back_to_otsu_without_water_peak():
+    db = np.random.default_rng(2).normal(-10, 2, 50000)
+    assert water.valley_threshold(db) == water.otsu_threshold(db)
+
+
+def test_near_river_ignores_small_ponds():
+    m = np.zeros((300, 300), bool)
+    m[:, 100:140] = True            # river, 300 x 40 px at 10 m = 1.2 km2
+    m[20:25, 250:255] = True        # pond
+    near = change.near_river(m, pixel_m=10.0, min_area_km2=1.0, within_m=300)
+    assert near[150, 120] and near[150, 160] and not near[150, 200]
+    assert not near[22, 252]        # the pond is not river

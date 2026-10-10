@@ -4,19 +4,23 @@ Every number in the demo comes from these steps, implemented in `src/compute` an
 
 1. **Read and crop.** Read the NISAR L2 GCOV backscatter layer (`/science/LSAR/GCOV/grids/frequencyA/HHHH`, 10 m pixels, EPSG 32646) and crop it to the AOI box. `tools/fetch_subset.py` reads only the box over HTTPS (about 45 MB per date instead of 7 GB). Every later scene is resampled to the first scene's grid by nearest neighbour (`src/acquire/nisar.py`). All scenes must come from the same track and frame. We plan to use the 18 Jun repeat cycle (8 passes over the Jamuna, see `docs/COVERAGE.md`).
 2. **Decibels and speckle.** Convert linear power to dB (10·log10) and apply a 5×5 median filter.
-3. **Water mask.** Pixels darker than the threshold are water. The threshold comes from Otsu's method per scene unless `--threshold` is given. Water patches under 50 px are removed and land holes under 20 px are filled.
-4. **Land lost.** A pixel is land lost if it was land on the first date and water on the **last two** dates. Requiring two dates filters out short floods that recede. With only two scenes the rule falls back to one date and is marked unconfirmed.
-5. **Retreat.** For each lost pixel, measure the distance to the nearest land on the last date. Each 500 m cell reports the 95th percentile, so one noisy pixel can't set the value.
-6. **Homes near the new bank.** Count building points on land within 200 m of last-date water, inside or within 200 m of the cell.
-7. **Risk level (starting thresholds, to tune on the back-test):**
+3. **Water mask.** Pixels darker than the threshold are water. The threshold is the lowest point of the histogram between the water peak and the land peak (`valley_threshold`), per scene, unless `--threshold` is given. Otsu's method is kept as an option but lands too high on the Jamuna: on 18 June 2026 Otsu gave −12.7 dB and marked wet fields and sandbars as water, while the valley sat at −15.0 dB between a water peak at −18.2 dB and a land peak at −10.3 dB. Water patches under 50 px are removed and land holes under 20 px are filled.
+4. **Main river.** Water bodies of at least 2 km², after removing channels narrower than 200 m (`bankline.main_river`). Ponds, flooded fields and thin creeks cannot set the bank.
+5. **Outer bank lines.** In every image row, the westmost and eastmost river pixel (`bankline.bank_columns`). Sandbars (chars) inside the river are ignored by construction. This matters: between 18 and 30 June 2026 rising water covered chars, and counting every land-to-water pixel reported 8,218 ha "lost" in 12 days. The outer-bank method reports 156 ha.
+6. **Retreat per segment.** Each bank is cut into 500 m segments. Retreat is the median outward movement of the bank (positive = the river moved into the land). Confirmed retreat is the smaller of first→last and first→second-last, so a flood that recedes is not counted. A segment is left out (status "jump") when the bank line switched to another channel: median over 400 m, or rows disagreeing by more than 150 m. With only 2 dates, results are marked unconfirmed.
+7. **Homes near the new bank.** Count building points on the land side within 200 m of the new bank, in the same segment.
+8. **Risk level (starting thresholds, to tune on the back-test):**
    - red: retreat ≥ 100 m **and** at least one home near the new bank
    - amber: retreat ≥ 30 m
-   - green: otherwise
+   - green: otherwise (not shown)
+
+The original pixel-area method is still available with `--engine area`.
 
 ## Known limits
 
 - **Minimum detectable change:** about 2 pixels. Our GCOV layer (frequency A) has 10 m pixels, so about 20 m.
-- **Flooding vs erosion:** monsoon flooding of low land can look like erosion. The two-date rule reduces this but doesn't remove it. Wet sandbars (chars) can also look like water.
+- **Flooding vs erosion:** rising water can still push the outer bank line over low land next to the river. The last-two-dates rule reduces this but doesn't remove it. Comparing passes at a similar river level (BWDB gauge at Sirajganj) is the next improvement.
+- **Channel switching:** in a braided river the outermost channel can change between passes. Those segments are reported as unreliable, never as erosion. On 18 to 30 June 2026, 52 of 206 bank segments were unreliable.
 - **Wind and rain:** wind-roughened water can look bright and be missed.
 - **Provisional data:** NISAR products are provisional.
 - **Revisit:** NISAR repeats every 12 days, with 36 to 72 hours from acquisition to data. That supports a 2 to 4 week priority warning, not a same-night siren.

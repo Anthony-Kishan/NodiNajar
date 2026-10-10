@@ -103,7 +103,7 @@
     if (fly) after.flyTo({ center: p.centre, zoom: 12.3, duration: 0 });
     const first = scenes[0].date, last = scenes[scenes.length - 1].date;
     $('cellBox').innerHTML = `
-      <h2>Cell ${p.id}<span class="lvl ${p.level}">${p.level === 'red' ? 'high risk' : p.level === 'amber' ? 'watch' : 'low'}</span></h2>
+      <h2>Cell ${p.id}${p.side ? ` · ${p.side} bank` : ''}<span class="lvl ${p.level}">${p.level === 'red' ? 'high risk' : p.level === 'amber' ? 'watch' : 'low'}</span></h2>
       <div class="big">${fmt(p.retreat_m)} m</div>
       <p class="muted">Bank moved between ${fmtDate(first)} and ${fmtDate(last)} (${S.period_days} days). ${fmt(p.lost_ha)} ha of land lost in this cell. <b>${p.homes_near}</b> homes within ${S.method.near_m} m of the new bank.</p>
       ${spark(p.history_m)}
@@ -113,16 +113,17 @@
 
   function spark(vals) {
     const W = 320, H = 132, L = 34, R = 8, T = 24, B = 24;
-    const max = Math.max(50, ...vals), n = vals.length;
+    const max = Math.max(50, ...vals.filter((v) => v != null)), n = vals.length;
     // x is placed by real date, so a missed pass shows as a wider gap
     const t = scenes.map((s) => Date.parse(s.date)), t0 = t[0], span = Math.max(1, t[n - 1] - t0);
     const X = (i) => L + ((t[i] - t0) / span) * (W - L - R), Y = (v) => T + (1 - v / max) * (H - T - B);
-    const pts = vals.map((v, i) => `${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(' ');
+    // null = no reliable bank position on that pass (channel switch); leave a gap, never draw a guess
+    const pts = vals.map((v, i) => (v == null ? null : `${X(i).toFixed(1)},${Y(v).toFixed(1)}`)).filter(Boolean).join(' ');
     const ticks = [0, Math.round(max / 2), Math.round(max)];
     return `<svg class="spark" viewBox="0 0 ${W} ${H}" role="img" aria-label="Bank retreat by radar pass">
       ${ticks.map((t) => `<line x1="${L}" x2="${W - R}" y1="${Y(t)}" y2="${Y(t)}" stroke="currentColor" stroke-opacity=".12"/><text x="${L - 6}" y="${Y(t) + 4}" font-size="10" text-anchor="end" fill="currentColor" fill-opacity=".6">${t}</text>`).join('')}
       <polyline points="${pts}" fill="none" stroke="#d62f2f" stroke-width="2"/>
-      ${vals.map((v, i) => `<circle cx="${X(i)}" cy="${Y(v)}" r="3" fill="#d62f2f"><title>${fmtDate(scenes[i].date)}: ${fmt(v)} m</title></circle>`).join('')}
+      ${vals.map((v, i) => (v == null ? '' : `<circle cx="${X(i)}" cy="${Y(v)}" r="3" fill="#d62f2f"><title>${fmtDate(scenes[i].date)}: ${fmt(v)} m</title></circle>`)).join('')}
       <text x="${L}" y="${H - 6}" font-size="10" fill="currentColor" fill-opacity=".6">${fmtDate(scenes[0].date)}</text>
       <text x="${W - R}" y="${H - 6}" font-size="10" text-anchor="end" fill="currentColor" fill-opacity=".6">${fmtDate(scenes[n - 1].date)}</text>
       <text x="${L}" y="${T - 12}" font-size="10" fill="currentColor" fill-opacity=".6">retreat (m), one point per radar pass</text>
