@@ -130,7 +130,7 @@ def bankline_cells(masks, pixel, args, homes_rc):
                           "homes_near": int(idx.size), "home_idx": idx})
     rule = ("outer bank moved into the land on the first-to-last and first-to-second-last comparison (smaller value kept)"
             if len(masks) >= 3 else "outer bank moved between the first and last date (unconfirmed: only 2 dates)")
-    return cells, lost, rule, counts
+    return cells, lost, rule, counts, cols
 
 
 def area_cells(masks, pixel, args, homes_rc, pad):
@@ -226,6 +226,7 @@ def main():
         m, thr = water.water_mask(db, thresholds[i], method="otsu" if thresholds[i] is None else args.method)
         masks.append(m)
         png_db(db, OUT / f"scene_{i:02d}.png", step=step)
+        png_mask(m, OUT / f"water_{i:02d}.png", (87, 184, 201), step=step, alpha=170)
         scene_meta.append({"index": i, "date": s.date, "granule": s.granule, "pol": s.pol,
                            "threshold_db": round(thr, 2), "threshold_from": how[i],
                            "water_km2": round(m.sum() * pixel ** 2 / 1e6, 2),
@@ -247,11 +248,12 @@ def main():
     pad = int(round(args.near / pixel))
 
     if args.engine == "bankline":
-        cells, lost, lost_rule, seg_counts = bankline_cells(masks, pixel, args, homes_rc)
+        cells, lost, lost_rule, seg_counts, bank_cols = bankline_cells(masks, pixel, args, homes_rc)
         retreat_text = ("median outward movement of the outer bank per 500 m segment (westmost / eastmost river pixel "
                         "per row; chars inside the river ignored)")
     else:
         cells, lost, lost_rule = area_cells(masks, pixel, args, homes_rc, pad)
+        bank_cols = None
         seg_counts = None
         retreat_text = "95th percentile distance from lost pixels to the nearest land on the last date"
     png_mask(lost, OUT / "loss.png", (230, 57, 70), step=step)
@@ -279,6 +281,21 @@ def main():
               "geometry": {"type": "Point", "coordinates": [round(homes_ll[i, 0], 6), round(homes_ll[i, 1], 6)]}}
              for i in sorted(at_risk_idx)]
     (OUT / "homes.geojson").write_text(json.dumps({"type": "FeatureCollection", "features": homes}))
+
+    # outer bank lines on every pass (for the web app's moving-bank layer)
+    bank_feats = []
+    if bank_cols is not None:
+        for i, (cw, ce) in enumerate(bank_cols):
+            for side, cc in (("west", cw), ("east", ce)):
+                for line in bankline.bank_polylines(cc, step=5, smooth=9):
+                    rr = np.array([p[0] for p in line]); cl = np.array([p[1] for p in line])
+                    xs = ref.x[0] + cl * pixel; ys = ref.y[0] - rr * pixel
+                    lon, lat = to_ll.transform(xs, ys)
+                    bank_feats.append({"type": "Feature",
+                                       "properties": {"pass": i, "date": scene_meta[i]["date"], "side": side},
+                                       "geometry": {"type": "LineString",
+                                                    "coordinates": [[round(a, 5), round(b, 5)] for a, b in zip(lon, lat)]}})
+    (OUT / "banklines.geojson").write_text(json.dumps({"type": "FeatureCollection", "features": bank_feats}))
 
     levels = [f["properties"]["level"] for f in features]
     d0, d1 = date.fromisoformat(scenes[0].date), date.fromisoformat(scenes[-1].date)

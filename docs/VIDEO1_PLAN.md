@@ -37,7 +37,7 @@ Move the mouse slowly and pause 1 second before each click. The PROVISIONAL badg
 | Time | Picture | Narration |
 | --- | --- | --- |
 | 0:00–0:12 | Black. Sound of a riverbank falling. Text: "18 August 2026. Bhorer Pakhi Char, Gaibandha." | "On the eighteenth of August, the Teesta River took the only school on Bhorer Pakhi Char." |
-| 0:12–0:28 | Team card: every member, name and role | "We are Team AlphaMatrix from Bangladesh: Kishan Modhu, Kazi Majedul Islam, Mahbub Al Hasan Akib, Sajib Rahman and Anika Rahman." |
+| 0:12–0:28 | Team card: every member, name and role | "We are Team AlphaMatrix from Bangladesh: Kishan Modhu, Kazi Majedul Islam, Mahbub Al Hasan Akib, Sajib Rahman and Raihana Ferdosh." |
 | 0:28–0:55 | News headlines (credited), then the Jamuna at Sirajganj | "Every monsoon, riverbank erosion forces around a hundred thousand people in Bangladesh from their homes. This July the Jamuna took homes and part of a primary school in Chauhali, in under an hour. Families get a list of victims after the land is gone. They get no warning before." |
 | 0:55–1:08 | Title card: NASA Space Apps 2026, "Dancing with the SARs" | "Our challenge is Dancing with the SARs: using radar from space to see how Earth's surface is changing." |
 | 1:08–1:35 | Worldview July image (all cloud), cut to the 10 m NISAR quick-look of the Jamuna, labelled provisional | "Erosion peaks in the monsoon, exactly when clouds blind camera satellites. NASA and ISRO's new NISAR satellite uses radar, which sees through cloud and rain. Its data is provisional, and only public since July." |

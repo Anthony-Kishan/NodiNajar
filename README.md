@@ -73,10 +73,10 @@ web/                  offline demo: MapLibre swipe map, risk cells, Bangla alert
 | Member | Role |
 | --- | --- |
 | Kishan Modhu | Team lead, ML and back-test |
-| Kazi Majedul Islam | Backend, Geospatial |
-| Mahbub Al Hasan Akib | Radar lead (SAR) |
-| Sajib Rahman | Full-stack and demo |
-| Anika Rahman | Story, video and presentation |
+| Kazi Majedul Islam | Backend, Reasercher, Geospatial |
+| Mahbub Al Hasan Akib | Radar lead (SAR), Video Editting |
+| Sajib Rahman | Full-stack, UI/UX |
+| Raihana Ferdosh | Story, video and presentation |
 
 How we work together: [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
@@ -96,3 +96,20 @@ How we work together: [`CONTRIBUTING.md`](CONTRIBUTING.md).
 - MapLibre GL JS 4.7.1 (BSD-3-Clause, `web/vendor/MAPLIBRE_LICENSE.txt`)
 
 Licence: Apache-2.0 (see `LICENSE`).
+
+## Web app (Next.js) and API
+
+The dashboard in `webapp/` is the blueprint front end: Next.js, MapLibre GL, deck.gl and Recharts, with satellite,
+Sentinel-2, terrain and street basemaps under the NISAR radar. Tabs: Overview, Live map, Bank stretches, Radar passes,
+Alerts, Embankments (next) and Methods & data. It works on phones, tablets and desktops.
+
+```bash
+python -m src.pipeline.export_web      # copy the latest results into webapp/public/data
+cd webapp && npm install && npm run dev
+```
+
+Launch: `cd webapp && npx vercel --prod`, or import the repo in Vercel with Root Directory `webapp`. See `webapp/README.md`.
+
+The API (`api/`, FastAPI) serves the same results: `/stats`, `/passes`, `/schedule`, `/segments`, `/alerts/{id}`.
+`docker compose up -d` starts PostGIS, the API, Martin (vector tiles) and TiTiler (radar tiles); `python -m api.load_postgis`
+loads the results into PostGIS. The original offline demo in `web/` still opens by double-click.

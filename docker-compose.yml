@@ -1,0 +1,33 @@
+# NodiNajar back end (blueprint stack): PostGIS, FastAPI, TiTiler (radar rasters), Martin (vector tiles).
+#   docker compose up -d
+#   DATABASE_URL=postgresql://nodinajar:nodinajar@localhost:5432/nodinajar python -m api.load_postgis
+# API docs: http://localhost:8000/docs   Martin: http://localhost:3000/catalog   TiTiler: http://localhost:8080/docs
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: nodinajar
+      POSTGRES_PASSWORD: nodinajar      # local development only; set a real secret on a server
+      POSTGRES_DB: nodinajar
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+  api:
+    build: { context: ., dockerfile: api/Dockerfile }
+    environment:
+      DATABASE_URL: postgresql://nodinajar:nodinajar@db:5432/nodinajar
+    ports: ["8000:8000"]
+    depends_on: [db]
+  martin:
+    image: ghcr.io/maplibre/martin:v0.14.2
+    command: ["--default-srid", "4326"]
+    environment:
+      DATABASE_URL: postgresql://nodinajar:nodinajar@db:5432/nodinajar
+    ports: ["3000:3000"]
+    depends_on: [db]
+  titiler:
+    image: ghcr.io/developmentseed/titiler:0.18.3
+    environment: { PORT: "8080", WORKERS_PER_CORE: "1" }
+    ports: ["8080:8080"]
+    volumes: ["./cache:/data:ro"]
+volumes:
+  pgdata:

@@ -57,3 +57,19 @@ def test_confirmed_retreat_ignores_a_flood_that_recedes():
     rows = bankline.confirmed_retreat(cols[0], cols[1:], "east", 10.0, 50)
     assert rows[0]["status"] == "ok" and rows[0]["retreat_m"] == 50.0 and rows[0]["confirmed"]
     assert rows[0]["history_m"][:3] == [0.0, 120.0, 0.0]
+
+
+def test_bank_polylines_follow_the_bank_and_break_at_gaps():
+    cols = np.full(200, 120.0)
+    cols[90:110] = np.nan                       # no bank measured here: the line must break
+    cols[150:] = 180.0                          # bank switches channel: break, do not join
+    lines = bankline.bank_polylines(cols, step=5, smooth=1, max_jump_px=30)
+    assert len(lines) == 3
+    assert all(abs(c - 120) < 1e-9 for _, c in lines[0])
+    assert lines[0][-1][0] < 90 and lines[1][0][0] >= 110
+    assert all(c == 180 for _, c in lines[2])
+
+
+def test_bank_polylines_drop_tiny_pieces():
+    cols = np.full(40, np.nan); cols[10:16] = 50.0
+    assert bankline.bank_polylines(cols, step=5, smooth=1, min_points=4) == []

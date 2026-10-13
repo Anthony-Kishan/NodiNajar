@@ -1,0 +1,200 @@
+{
+ "label": "NISAR L-band GCOV - PROVISIONAL",
+ "mode": "nisar",
+ "generated_utc": "2026-10-12T23:26:23+00:00",
+ "aoi_bbox": [
+  89.6,
+  24.0,
+  89.92,
+  24.72
+ ],
+ "corners": [
+  [
+   89.580739,
+   24.719598
+  ],
+  [
+   89.919837,
+   24.726953
+  ],
+  [
+   89.937396,
+   24.000307
+  ],
+  [
+   89.600223,
+   23.993195
+  ]
+ ],
+ "pixel_m": 10.0,
+ "display_step": 3,
+ "period_days": 96,
+ "totals": {
+  "land_lost_ha": 178.8,
+  "max_retreat_m": 360.0,
+  "cells_red": 5,
+  "cells_amber": 33,
+  "homes_near_new_bank": 851
+ },
+ "segments": {
+  "ok": 240,
+  "jump": 84,
+  "gap": 0
+ },
+ "method": {
+  "speckle_filter": "median 5x5",
+  "water_rule": "dB below threshold (valley per scene); specks < 50 px removed",
+  "river_rule": "river = water bodies >= 2 km2, channels narrower than 200 m ignored",
+  "engine": "bankline",
+  "retreat": "median outward movement of the outer bank per 500 m segment (westmost / eastmost river pixel per row; chars inside the river ignored)",
+  "cell_m": 500.0,
+  "near_m": 200.0,
+  "risk_rule": "red: retreat >= 100 m and homes within near_m; amber: retreat >= 30 m",
+  "uncertainty": "Pixel spacing sets the minimum detectable retreat (about 2 pixels). Rising water can push the bank line outward over low land; only movement that holds on the last two passes is counted. Segments where the bank line switched channel are left out, not guessed."
+ },
+ "lost_rule": "outer bank moved into the land on the first-to-last and first-to-second-last comparison (smaller value kept)",
+ "homes_source": "Overture Maps buildings",
+ "track": {
+  "repeat_days": 12,
+  "track": 69,
+  "frame": 14,
+  "direction": "ascending"
+ },
+ "passes": [
+  {
+   "index": 0,
+   "date": "2026-06-18",
+   "granule": "NISAR_L2_PR_GCOV_023_069_A_014_4005_DHDH_A_20260618T232135_20260618T232210_P05023_N_F_J_001",
+   "pol": "HHHH",
+   "threshold_db": -15.04,
+   "threshold_from": "valley",
+   "water_km2": 453.89,
+   "radar": "radar/2026-06-18.webp",
+   "thumb": "radar/2026-06-18_thumb.webp",
+   "water": "water/2026-06-18.webp",
+   "px": [
+    1145,
+    2686
+   ]
+  },
+  {
+   "index": 1,
+   "date": "2026-06-30",
+   "granule": "NISAR_L2_PR_GCOV_024_069_A_014_4005_DHDH_A_20260630T232134_20260630T232209_P05023_N_F_J_001",
+   "pol": "HHHH",
+   "threshold_db": -15.39,
+   "threshold_from": "valley",
+   "water_km2": 610.29,
+   "radar": "radar/2026-06-30.webp",
+   "thumb": "radar/2026-06-30_thumb.webp",
+   "water": "water/2026-06-30.webp",
+   "px": [
+    1145,
+    2686
+   ]
+  },
+  {
+   "index": 2,
+   "date": "2026-07-12",
+   "granule": "NISAR_L2_PR_GCOV_025_069_A_014_4005_DHDH_A_20260712T232134_20260712T232208_P05023_N_F_J_001",
+   "pol": "HHHH",
+   "threshold_db": -15.04,
+   "threshold_from": "median of 4 valley dates",
+   "water_km2": 521.16,
+   "radar": "radar/2026-07-12.webp",
+   "thumb": "radar/2026-07-12_thumb.webp",
+   "water": "water/2026-07-12.webp",
+   "px": [
+    1145,
+    2686
+   ]
+  },
+  {
+   "index": 3,
+   "date": "2026-07-24",
+   "granule": "NISAR_L2_PR_GCOV_026_069_A_014_4005_DHDH_A_20260724T232133_20260724T232208_P05023_N_F_J_001",
+   "pol": "HHHH",
+   "threshold_db": -15.04,
+   "threshold_from": "median of 4 valley dates",
+   "water_km2": 967.28,
+   "radar": "radar/2026-07-24.webp",
+   "thumb": "radar/2026-07-24_thumb.webp",
+   "water": "water/2026-07-24.webp",
+   "px": [
+    1145,
+    2686
+   ]
+  },
+  {
+   "index": 4,
+   "date": "2026-08-17",
+   "granule": "NISAR_L2_PR_GCOV_028_069_A_014_4005_DHDH_A_20260817T232132_20260817T232206_P05023_N_F_J_001",
+   "pol": "HHHH",
+   "threshold_db": -15.04,
+   "threshold_from": "median of 4 valley dates",
+   "water_km2": 462.95,
+   "radar": "radar/2026-08-17.webp",
+   "thumb": "radar/2026-08-17_thumb.webp",
+   "water": "water/2026-08-17.webp",
+   "px": [
+    1145,
+    2686
+   ]
+  },
+  {
+   "index": 5,
+   "date": "2026-08-29",
+   "granule": "NISAR_L2_PR_GCOV_029_069_A_014_4005_DHDH_A_20260829T232132_20260829T232206_P05023_N_F_J_001",
+   "pol": "HHHH",
+   "threshold_db": -15.04,
+   "threshold_from": "median of 4 valley dates",
+   "water_km2": 659.84,
+   "radar": "radar/2026-08-29.webp",
+   "thumb": "radar/2026-08-29_thumb.webp",
+   "water": "water/2026-08-29.webp",
+   "px": [
+    1145,
+    2686
+   ]
+  },
+  {
+   "index": 6,
+   "date": "2026-09-10",
+   "granule": "NISAR_L2_PR_GCOV_030_069_A_014_4005_DHDH_A_20260910T232131_20260910T232206_P05023_N_F_J_001",
+   "pol": "HHHH",
+   "threshold_db": -15.04,
+   "threshold_from": "valley",
+   "water_km2": 732.29,
+   "radar": "radar/2026-09-10.webp",
+   "thumb": "radar/2026-09-10_thumb.webp",
+   "water": "water/2026-09-10.webp",
+   "px": [
+    1145,
+    2686
+   ]
+  },
+  {
+   "index": 7,
+   "date": "2026-09-22",
+   "granule": "NISAR_L2_PR_GCOV_031_069_A_014_4005_DHDH_A_20260922T232132_20260922T232206_P05023_N_F_J_001",
+   "pol": "HHHH",
+   "threshold_db": -14.86,
+   "threshold_from": "valley",
+   "water_km2": 622.66,
+   "radar": "radar/2026-09-22.webp",
+   "thumb": "radar/2026-09-22_thumb.webp",
+   "water": "water/2026-09-22.webp",
+   "px": [
+    1145,
+    2686
+   ]
+  }
+ ],
+ "loss": "loss.webp",
+ "files": {
+  "segments": "segments.geojson",
+  "homes": "homes.geojson",
+  "banklines": "banklines.geojson",
+  "csv": "segments.csv"
+ }
+}

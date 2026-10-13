@@ -109,3 +109,40 @@ def confirmed_retreat(first: tuple, later: list[tuple], side: str, pixel_m: floa
             "history_m": [0.0] + [p[i]["retreat_m"] if p[i]["status"] == OK else None for p in per_date],
         })
     return rows
+
+
+def bank_polylines(cols: np.ndarray, step: int = 5, smooth: int = 9, max_jump_px: float = 30.0,
+                   min_points: int = 4) -> list[list[tuple[float, float]]]:
+    """
+    One bank (a per-row column array from bank_columns) as map-ready polylines in
+    (row, col) pixel coordinates. Rows are median-smoothed over `smooth` rows,
+    sampled every `step` rows, and the line is broken wherever the bank is
+    missing or jumps more than max_jump_px between samples (another channel),
+    so the drawn line never invents a bank that was not measured.
+    """
+    c = np.asarray(cols, float)
+    if smooth > 1:
+        pad = smooth // 2
+        p = np.pad(c, pad, constant_values=np.nan)
+        win = np.lib.stride_tricks.sliding_window_view(p, smooth)
+        with np.errstate(all="ignore"):
+            import warnings
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", RuntimeWarning)
+                sm = np.nanmedian(win, axis=1)
+        sm[~np.isfinite(c)] = np.nan
+        c = sm
+    lines, cur, prev = [], [], None
+    for r in range(0, c.size, step):
+        v = c[r]
+        if not np.isfinite(v) or (prev is not None and abs(v - prev) > max_jump_px):
+            if len(cur) >= min_points:
+                lines.append(cur)
+            cur = [] if not np.isfinite(v) else [(float(r), float(v))]
+            prev = v if np.isfinite(v) else None
+            continue
+        cur.append((float(r), float(v)))
+        prev = v
+    if len(cur) >= min_points:
+        lines.append(cur)
+    return lines
