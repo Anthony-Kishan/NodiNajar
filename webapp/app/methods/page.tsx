@@ -73,7 +73,7 @@ export default function Methods() {
           <ul style={{ margin: "8px 0 0", paddingLeft: 18 }}>
             <li>Radar: NASA-ISRO NISAR L2 GCOV, via NASA Alaska Satellite Facility DAAC (provisional).</li>
             <li>Homes: Overture Maps buildings (OpenStreetMap contributors, Google Open Buildings, Microsoft).</li>
-            <li>Basemaps: Esri World Imagery; Sentinel-2 cloudless 2025 by EOX (CC BY-NC-SA 4.0); CARTO and OpenStreetMap; Mapzen terrain tiles (AWS Open Data).</li>
+            <li>Basemaps: Esri World Imagery; Sentinel-2 cloudless 2025 by EOX (CC BY-NC-SA 4.0); Esri World Topographic, World Street Map, Dark Gray Canvas and World Boundaries and Places labels (with OpenStreetMap data); Mapzen terrain tiles (AWS Open Data).</li>
             <li>Software: Next.js, MapLibre GL JS, deck.gl, Recharts; Python (NumPy, SciPy, h5py). Font: Hind Siliguri (SIL OFL).</li>
             <li>Team AlphaMatrix, NASA Space Apps Challenge 2026, challenge “Dancing with the SARs”. AI help is logged in docs/AI_USE.md.</li>
           </ul>

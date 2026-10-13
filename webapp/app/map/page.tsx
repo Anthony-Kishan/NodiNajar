@@ -5,7 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 import { ErrorBox, LevelPill, Loading, SegmentRow } from "@/components/Bits";
 import { RetreatChart } from "@/components/Charts";
 import { IconLayers, IconPause, IconPlay, IconX } from "@/components/Icons";
-import { RiverMap } from "@/components/MapClient";
+import { CompareMap, RiverMap } from "@/components/MapClient";
+import type { Map as MLMap } from "maplibre-gl";
 import { DEFAULT_LAYERS, type MapLayers } from "@/lib/mapLayers";
 import { BASEMAPS, type BasemapId } from "@/lib/basemaps";
 import { useRiver } from "@/lib/data";
@@ -31,14 +32,19 @@ export default function MapPage() {
   const [threeD, setThreeD] = useState(false);
   const [sel, setSel] = useState<string | null>(null);
   const [panelOpen, setPanelOpen] = useState(false);
+  const [compare, setCompare] = useState(false);
+  const [before, setBefore] = useState(0);
+  const [mainMap, setMainMap] = useState<MLMap | null>(null);
 
   const segs = useMemo(() => data?.segments.features.map((f) => f.properties) ?? [], [data]);
   const P = data?.manifest.passes ?? [];
   const idx = pass ?? Math.max(0, P.length - 1);
 
   useEffect(() => {
-    const q = new URLSearchParams(window.location.search).get("seg");
+    const sp = new URLSearchParams(window.location.search);
+    const q = sp.get("seg");
     if (q) setSel(q);
+    if (sp.get("compare") !== null) setCompare(true);
   }, []);
   useEffect(() => {
     if (!playing || !P.length) return;
@@ -84,8 +90,12 @@ export default function MapPage() {
 
   return (
     <main className="map-shell">
-      <RiverMap data={data} passIndex={idx} basemap={basemap} layers={layers} radarOpacity={opacity} threeD={threeD}
-        selectedId={sel} onSelect={(id) => setSel(id)} />
+      <RiverMap data={data} passIndex={idx} basemap={basemap} layers={layers} radarOpacity={opacity} threeD={threeD && !compare}
+        selectedId={sel} onSelect={(id) => setSel(id)} onMapReady={setMainMap} />
+      {compare && mainMap && (
+        <CompareMap data={data} main={mainMap} beforeIndex={Math.min(before, idx)} afterIndex={idx} basemap={basemap}
+          radarOpacity={layers.radar ? opacity : 0} showWater={layers.water} />
+      )}
 
       <div className="float stamp" aria-live="polite">
         <b className="num">{fmtDate(cur.date, true)}</b>
@@ -96,6 +106,18 @@ export default function MapPage() {
         <button type="button" className="sheet-toggle" onClick={() => setPanelOpen((v) => !v)} aria-expanded={panelOpen}>
           <IconLayers /> {panelOpen ? "Hide layers" : "Layers and basemap"}
         </button>
+        <div className="ctrl-title">Before / after</div>
+        <label className="toggle"><span><b>Swipe compare</b>: drag the divider to see the river on two dates</span>
+          <input type="checkbox" checked={compare} onChange={(e) => setCompare(e.target.checked)} /></label>
+        {compare && (
+          <div className="compare-pick">
+            <span className="muted">Before</span>
+            <select value={Math.min(before, idx)} onChange={(e) => setBefore(Number(e.target.value))} aria-label="Before pass">
+              {P.map((p, i) => <option key={p.date} value={i} disabled={i >= idx}>{fmtDate(p.date, true)}</option>)}
+            </select>
+            <span className="muted">After: pick a date on the timeline</span>
+          </div>
+        )}
         <div className="ctrl-title">Basemap</div>
         <div className="chips">
           {BASEMAPS.map((b) => (
@@ -112,8 +134,8 @@ export default function MapPage() {
         <div className="ctrl-title">Radar opacity</div>
         <input type="range" min={0} max={1} step={0.05} value={opacity} onChange={(e) => setOpacity(Number(e.target.value))} aria-label="Radar opacity" />
         <div className="ctrl-title">View</div>
-        <label className="toggle"><span>3D: columns show how far each stretch moved</span>
-          <input type="checkbox" checked={threeD} onChange={(e) => setThreeD(e.target.checked)} /></label>
+        <label className="toggle"><span>3D: columns show how far each stretch moved{compare ? " (off while comparing)" : ""}</span>
+          <input type="checkbox" checked={threeD && !compare} disabled={compare} onChange={(e) => setThreeD(e.target.checked)} /></label>
         <div className="ctrl-title">Legend</div>
         <div style={{ display: "grid", gap: 4, fontSize: 12.5 }} className="muted">
           <span><i className="swatch" style={{ background: "#e5533d", borderRadius: "50%" }} />High risk: moved ≥ 100 m, homes within 200 m</span>
@@ -159,6 +181,8 @@ export default function MapPage() {
           {playing ? <IconPause /> : <IconPlay />}
         </button>
         <div className="ticks">{ticks}</div>
+        <button type="button" className={`btn sm${compare ? " primary" : ""}`} onClick={() => setCompare((v) => !v)} aria-pressed={compare}
+          title="Swipe between two passes">{compare ? "Exit compare" : "Before / after"}</button>
       </div>
     </main>
   );

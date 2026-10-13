@@ -21,6 +21,8 @@ interface Props {
   threeD: boolean;
   selectedId: string | null;
   onSelect?: (id: string | null) => void;
+  /** Called once the map exists, so a before/after compare map can follow its camera. */
+  onMapReady?: (m: MLMap | null) => void;
   compact?: boolean;
   className?: string;
 }
@@ -141,6 +143,7 @@ export default function RiverMap(p: Props) {
       attributionControl: { compact: true }, maxPitch: 75, dragRotate: !p.compact, cooperativeGestures: !!p.compact,
     });
     map.current = m;
+    p.onMapReady?.(m);
     if (!p.compact) {
       m.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "top-right");
       m.addControl(new maplibregl.ScaleControl({ unit: "metric" }), "bottom-right");
@@ -163,7 +166,7 @@ export default function RiverMap(p: Props) {
     m.addControl(ov as unknown as maplibregl.IControl);
     overlay.current = ov;
     m.on("style.load", () => { addOverlays(m); applyTerrain(m); ready.current = true; ov.setProps({ layers: deckLayers() }); });
-    return () => { ready.current = false; m.remove(); map.current = null; overlay.current = null; };
+    return () => { ready.current = false; props.current.onMapReady?.(null); m.remove(); map.current = null; overlay.current = null; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

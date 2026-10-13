@@ -1,0 +1,15 @@
+# The web app is a static Next.js site in webapp/. Keep Vercel from turning the
+# Python API (api/) and pipeline into serverless functions.
+api/
+src/
+tests/
+tools/
+web/
+docs/
+ground_truth/
+aoi/
+cache/
+outputs/
+*.py
+requirements.txt
+docker-compose.yml

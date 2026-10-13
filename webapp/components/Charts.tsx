@@ -34,7 +34,7 @@ export function WaterChart({ passes, gaps, selected, height = 230 }: { passes: P
         <YAxis {...axis} width={48} tickFormatter={(v) => `${v}`} unit="" />
         <Tooltip {...tip} labelFormatter={(t) => fmtDate(new Date(Number(t)), true)} formatter={((v: number) => [`${v.toFixed(1)} km²`, "Water in box"]) as never} />
         {selected !== undefined && <ReferenceLine x={rows[selected]?.t} stroke="#e8eef1" strokeDasharray="4 4" />}
-        <Area type="monotone" dataKey="km2" stroke={C.water} strokeWidth={2.4} fill="url(#wfill)" isAnimationActive
+        <Area type="linear" dataKey="km2" stroke={C.water} strokeWidth={2.4} fill="url(#wfill)" isAnimationActive
           dot={{ r: 3.5, fill: C.water, stroke: "#0b161d", strokeWidth: 1.5 }} activeDot={{ r: 6 }} />
       </AreaChart>
     </ResponsiveContainer>

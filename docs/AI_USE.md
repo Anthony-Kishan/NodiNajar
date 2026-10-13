@@ -25,6 +25,8 @@ Add a row for every other tool (ChatGPT, Copilot, image or voice generators, tra
 
 - **2026-10-13:** Built the web app on the blueprint stack (`webapp/`: Next.js, MapLibre GL, deck.gl, Recharts) with satellite and terrain basemaps, a pass player, 3D retreat columns, tabs for stretches, passes, alerts, embankments (empty until GUNW is processed) and methods. Added `bank_polylines` (tested) and per-pass water masks and bank lines to the pipeline, `src/pipeline/export_web.py` (tested), fixed alert templates in Python (`src/alerts/templates.py`, tested), and a FastAPI + PostGIS + Martin + TiTiler scaffold (`api/`, `docker-compose.yml`). The web app shows only numbers from the pipeline; the next-pass countdown is a 12-day schedule and is labelled as expected, not observed.
 
+- **2026-10-13 (later):** Switched the web app basemaps to keyless Esri services after CARTO raster tiles began returning "API KEY REQUIRED" images, and added a before/after swipe compare on the Live map (`webapp/components/CompareMap.tsx`). No numbers changed; the compare view shows the existing radar and water images for two real passes.
+
 ## What the AI did not do
 
 - No AI computes any number shown in the demo. All figures come from `src/compute`, which is deterministic and unit-tested.

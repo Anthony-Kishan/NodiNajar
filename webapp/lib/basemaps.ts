@@ -5,13 +5,16 @@ export type BasemapId = "satellite" | "sentinel" | "terrain" | "streets" | "dark
 export const BASEMAPS: { id: BasemapId; name: string; note: string }[] = [
   { id: "satellite", name: "Satellite", note: "Esri World Imagery, high-resolution photos" },
   { id: "sentinel", name: "Sentinel-2", note: "EOX Sentinel-2 cloudless 2025, true colour" },
-  { id: "terrain", name: "Terrain", note: "Shaded relief from open elevation tiles" },
-  { id: "streets", name: "Streets", note: "CARTO Voyager on OpenStreetMap" },
-  { id: "dark", name: "Dark", note: "CARTO Dark Matter on OpenStreetMap" },
+  { id: "terrain", name: "Terrain", note: "Esri World Topographic with shaded relief" },
+  { id: "streets", name: "Streets", note: "Esri World Street Map" },
+  { id: "dark", name: "Dark", note: "Esri Dark Gray Canvas" },
 ];
 
-const carto = (style: string) => ["a", "b", "c", "d"].map((s) => `https://${s}.basemaps.cartocdn.com/rastertiles/${style}/{z}/{x}/{y}@2x.png`);
-const CARTO_ATTR = '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>';
+// All basemaps are keyless. CARTO raster tiles now return an "API KEY REQUIRED" image
+// (checked 13 Oct 2026), so they are not used.
+const esri = (service: string) => [`https://server.arcgisonline.com/ArcGIS/rest/services/${service}/MapServer/tile/{z}/{y}/{x}`];
+const ESRI_ATTR = "Esri, Maxar, Earthstar Geographics, HERE, Garmin, © OpenStreetMap contributors";
+const LABELS = esri("Reference/World_Boundaries_and_Places");
 const DEM = {
   type: "raster-dem" as const,
   tiles: ["https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"],
@@ -30,22 +33,21 @@ export function basemapStyle(id: BasemapId): StyleSpecification {
     layers.push({ id: key, type: "raster", source: key, paint });
   };
   if (id === "satellite") {
-    raster("imagery", ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],
-      "Imagery © Esri, Maxar, Earthstar Geographics", 19, { "raster-saturation": -0.1 });
-    raster("labels", carto("dark_only_labels"), CARTO_ATTR);
+    raster("imagery", esri("World_Imagery"), "Imagery © Esri, Maxar, Earthstar Geographics", 19, { "raster-saturation": -0.1 });
+    raster("labels", LABELS, ESRI_ATTR, 19, { "raster-opacity": 0.9 });
   } else if (id === "sentinel") {
     raster("imagery", ["https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2025_3857/default/g/{z}/{y}/{x}.jpg"],
       '<a href="https://s2maps.eu">Sentinel-2 cloudless 2025</a> by EOX (Copernicus Sentinel data 2025), CC BY-NC-SA 4.0', 15);
-    raster("labels", carto("dark_only_labels"), CARTO_ATTR);
+    raster("labels", LABELS, ESRI_ATTR, 19, { "raster-opacity": 0.9 });
   } else if (id === "terrain") {
-    raster("base", carto("voyager_nolabels"), CARTO_ATTR, 20, { "raster-opacity": 0.85 });
+    raster("base", esri("World_Topo_Map"), ESRI_ATTR, 19, { "raster-opacity": 0.9 });
     layers.push({ id: "hillshade", type: "hillshade", source: "dem",
-      paint: { "hillshade-exaggeration": 0.9, "hillshade-shadow-color": "#2b3a42", "hillshade-highlight-color": "#ffffff" } });
-    raster("labels", carto("voyager_only_labels"), CARTO_ATTR);
+      paint: { "hillshade-exaggeration": 0.6, "hillshade-shadow-color": "#2b3a42", "hillshade-highlight-color": "#ffffff" } });
   } else if (id === "streets") {
-    raster("base", carto("voyager"), CARTO_ATTR);
+    raster("base", esri("World_Street_Map"), ESRI_ATTR);
   } else {
-    raster("base", carto("dark_all"), CARTO_ATTR);
+    raster("base", esri("Canvas/World_Dark_Gray_Base"), ESRI_ATTR, 16);
+    raster("labels", esri("Canvas/World_Dark_Gray_Reference"), ESRI_ATTR, 16);
   }
   return { version: 8, sources, layers };
 }

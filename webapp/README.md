@@ -40,7 +40,7 @@ Option B, from GitHub: push the repo, then in vercel.com choose **Add New → Pr
 
 ## Maps
 
-Basemaps need internet: Esri World Imagery (satellite), EOX Sentinel-2 cloudless 2025, CARTO/OpenStreetMap,
+Basemaps need internet: Esri World Imagery (satellite), EOX Sentinel-2 cloudless 2025, Esri World Topographic, Street and Dark Gray Canvas (keyless; CARTO raster tiles now need an API key),
 and Mapzen terrain tiles for hillshade and 3D. Offline, the radar, banks, stretches and homes still show on a
 dark background. Google's photorealistic 3D tiles need a Google Maps Platform key (not set up yet).
 
