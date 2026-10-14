@@ -8,6 +8,7 @@ export const IconSat = (p: SVGProps<SVGSVGElement>) => <svg {...base(p)}><path d
 export const IconBell = (p: SVGProps<SVGSVGElement>) => <svg {...base(p)}><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>;
 export const IconShield = (p: SVGProps<SVGSVGElement>) => <svg {...base(p)}><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/></svg>;
 export const IconBook = (p: SVGProps<SVGSVGElement>) => <svg {...base(p)}><path d="M4 5a2 2 0 0 1 2-2h14v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5M8 7h8"/></svg>;
+export const IconCheck = (p: SVGProps<SVGSVGElement>) => <svg {...base(p)}><path d="M20 6 9 17l-5-5"/></svg>;
 export const IconPlay = (p: SVGProps<SVGSVGElement>) => <svg {...base({ ...p, fill: "currentColor", stroke: "none" })}><path d="M8 5v14l11-7z"/></svg>;
 export const IconPause = (p: SVGProps<SVGSVGElement>) => <svg {...base({ ...p, fill: "currentColor", stroke: "none" })}><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>;
 export const IconLayers = (p: SVGProps<SVGSVGElement>) => <svg {...base(p)}><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></svg>;

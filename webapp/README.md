@@ -21,6 +21,7 @@ The app reads `webapp/public/data/`, written from the real NISAR run:
 ```bash
 python -m src.pipeline.build_demo --subsets cache/subsets/*.npz --buildings cache/buildings.csv
 python -m src.pipeline.export_web
+python -m src.pipeline.scorecard   # forecast.json and scorecard.json for the Track record tab
 ```
 
 No number is computed in the browser except dates and counts. Risk levels, retreat, homes and

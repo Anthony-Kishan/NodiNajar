@@ -26,6 +26,20 @@ The original pixel-area method is still available with `--engine area`.
 - **Revisit:** NISAR repeats every 12 days, with 36 to 72 hours from acquisition to data. That supports a 2 to 4 week priority warning, not a same-night siren.
 - **Missed pass:** in 2026 every repeat cycle over our reach skips one pass between late July and mid-August, so one interval is 24 days instead of 12.
 
-## Back-test (to do with real data)
+## Forecast (`src/compute/forecast.py`)
 
-Score flagged cells against `ground_truth/events.csv`. An event counts as caught if its cell was red at least 12 days before the report date. Report the hit rate, false alarm rate and median lead time, even if the numbers are modest.
+Each stretch's bank position on every pass (metres into the land since 18 June) gets a Theil-Sen straight line: the median of all pairwise slopes, so one wild pass (a channel switch) does not drag it. We project the line to the next passes. The range uses the 10th to 90th percentile of the pairwise slopes. A stretch needs 4 measured passes, and a negative trend is reported as "not advancing", never as land coming back.
+
+Back-test: we hid the last two passes (10 and 22 September), trained on the six before, and compared. Result on the 2026 run: median absolute error 17 m over 56 checks on 28 stretches (10 m on the 5 high-risk stretches), mean 45 m, and 59% of measured values inside the range. We first tried a 25th to 75th percentile range; only 34% of values fell inside, so we widened it to 10th to 90th. That choice was made after seeing the back-test, so treat the 59% as optimistic. The range is still too narrow (the target is about 80%).
+
+Run: `python -m src.pipeline.scorecard` after `export_web`. It writes `webapp/public/data/forecast.json` and `scorecard.json`.
+
+## News back-test (`src/compute/hindcast.py`)
+
+`ground_truth/events.csv` holds erosion reports from Bangladeshi newspapers (Jamuna, Sirajganj, 18 June to 4 October 2026). For each report pinned to a village or a named point, we replay the season pass by pass, using only passes that existed at the time. A stretch is flagged on pass k when its confirmed retreat (the smaller of passes k-1 and k) reaches 30 m. The report counts as warned if a stretch within 1.5 km (village) or 750 m (named point) was flagged on or before the reported date.
+
+Result on the 2026 run: 14 reports in the window. Only 2 fall near a measured outer bank: one warned 23 days before (16 days with a 7-day processing allowance) and one flagged 35 days after. Five are on char islands or banks the v1 engine does not measure. Seven name only a union, so they cannot be matched to a 500 m stretch until the team pins them on a map. Two events are far too few for a hit rate, and the page says so.
+
+Change from the plan: we had planned to count a report as caught only if its stretch was red at least 12 days before. Red needs 100 m of retreat plus homes, and neither on-bank stretch reached red, so under that rule both reports would count as missed. We report the watch-level (30 m) result and state the difference.
+
+Lesson for version 2: most losses reported this monsoon were on chars, where many families live. The water masks already cover the chars; tracking char edges is the next engine.

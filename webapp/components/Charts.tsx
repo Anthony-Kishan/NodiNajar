@@ -4,6 +4,7 @@ import {
   ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis,
 } from "recharts";
 import { fmtDate, parseDate } from "@/lib/format";
+import { ErrorBar } from "recharts";
 import type { Level, Pass, SegmentProps } from "@/lib/types";
 
 const C = { grid: "#24404f", axis: "#93a9b4", water: "#57b8c9", red: "#e5533d", amber: "#e9a93b", green: "#6cc28f", home: "#f6d365" };
@@ -54,7 +55,7 @@ export function RetreatChart({ dates, history, level, height = 200 }: { dates: s
         <ReferenceLine y={0} stroke="#2f5163" />
         <Tooltip {...tip} labelFormatter={(t) => fmtDate(new Date(Number(t)), true)}
           formatter={((v: number | null) => [v === null ? "bank not measured" : `${v} m`, "Bank moved"]) as never} />
-        <Line type="monotone" dataKey="m" stroke={LEVEL_C[level]} strokeWidth={2.6} connectNulls={false}
+        <Line type="linear" dataKey="m" stroke={LEVEL_C[level]} strokeWidth={2.6} connectNulls={false}
           dot={{ r: 3.5, fill: LEVEL_C[level], stroke: "#0b161d" }} activeDot={{ r: 6 }} />
       </LineChart>
     </ResponsiveContainer>
@@ -99,6 +100,40 @@ export function LevelBars({ segs, height = 200 }: { segs: SegmentProps[]; height
         <Bar dataKey="red" stackId="a" name="High risk" fill={C.red} radius={[4, 0, 0, 4]} />
         <Bar dataKey="amber" stackId="a" name="Watch" fill={C.amber} radius={[0, 4, 4, 0]} />
       </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
+/** Forecast check: measured bank position (x) against the forecast (y), with the forecast range as an error bar. */
+export function ForecastCheckChart({ rows, height = 300 }: { rows: { id: string; date: string; measured: number; expected: number; low: number; high: number }[]; height?: number }) {
+  const data = rows.map((r) => ({ ...r, err: [r.expected - r.low, r.high - r.expected] }));
+  // axes fit the forecasts and measurements; very wide ranges are clipped at the edge
+  const vals = rows.flatMap((r) => [r.measured, r.expected]);
+  const lo = Math.floor(Math.min(0, ...vals) / 50) * 50, hi = Math.ceil(Math.max(...vals) / 50) * 50 + 50;
+  return (
+    <ResponsiveContainer width="100%" height={height}>
+      <ScatterChart margin={{ top: 10, right: 16, left: -6, bottom: 6 }}>
+        <CartesianGrid stroke={C.grid} strokeDasharray="3 4" />
+        <XAxis dataKey="measured" type="number" domain={[lo, hi]} allowDataOverflow {...axis} unit=" m" name="Measured"
+          label={{ value: "measured by NISAR", fill: C.axis, fontSize: 11.5, position: "insideBottomRight", offset: -2 }} />
+        <YAxis dataKey="expected" type="number" domain={[lo, hi]} allowDataOverflow {...axis} width={56} unit=" m" name="Forecast"
+          label={{ value: "forecast", fill: C.axis, fontSize: 11.5, angle: -90, position: "insideLeft", offset: 14 }} />
+        <ReferenceLine segment={[{ x: lo, y: lo }, { x: hi, y: hi }]} stroke="#93a9b4" strokeDasharray="5 5" ifOverflow="hidden" />
+        <Tooltip {...tip} cursor={{ strokeDasharray: "3 3" }}
+          content={({ payload }) => {
+            const d = payload?.[0]?.payload as (typeof data)[number] | undefined;
+            if (!d) return null;
+            return (
+              <div style={{ ...tip.contentStyle, padding: "8px 10px" }}>
+                <b>{d.id}</b> · {fmtDate(d.date, true)}<br />
+                forecast {d.expected} m ({d.low}–{d.high})<br />measured <b>{d.measured} m</b>
+              </div>
+            );
+          }} />
+        <Scatter data={data} fill={C.water} stroke="#0b161d" strokeWidth={1.5}>
+          <ErrorBar dataKey="err" direction="y" width={0} stroke="#57b8c9" strokeOpacity={0.45} />
+        </Scatter>
+      </ScatterChart>
     </ResponsiveContainer>
   );
 }
