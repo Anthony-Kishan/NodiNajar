@@ -10,6 +10,8 @@ export interface Pass {
   threshold_from: string;
   water_km2: number;
   radar: string;
+  /** NISAR HV image, when the HV subsets have been exported (src/pipeline/export_hv.py) */
+  radar_hv?: string;
   thumb: string;
   water: string | null;
   px: [number, number];

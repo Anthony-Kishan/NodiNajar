@@ -18,6 +18,8 @@ interface Props {
   basemap: BasemapId;
   layers: MapLayers;
   radarOpacity: number;
+  /** Radar channel: HH (water and land) or HV (vegetation); HV falls back to HH where it is missing. */
+  channel?: "HH" | "HV";
   threeD: boolean;
   selectedId: string | null;
   onSelect?: (id: string | null) => void;
@@ -35,7 +37,7 @@ export default function RiverMap(p: Props) {
   const overlay = useRef<MapboxOverlay | null>(null);
   const ready = useRef(false);
   const front = useRef<"A" | "B">("A");
-  const shownPass = useRef<number>(-1);
+  const shownPass = useRef<string>("");
   const props = useRef(p);
   props.current = p;
 
@@ -43,9 +45,14 @@ export default function RiverMap(p: Props) {
   const passes = p.data.manifest.passes;
 
   /** Radar (two layers for cross-fading), water mask and land-lost overlays; re-added after every style change. */
+  function radarFile(i: number) {
+    const ps = passes[i];
+    return props.current.channel === "HV" && ps.radar_hv ? ps.radar_hv : ps.radar;
+  }
+
   function addOverlays(m: MLMap) {
     const cur = props.current;
-    const url = (i: number) => dataUrl(passes[i].radar);
+    const url = (i: number) => dataUrl(radarFile(i));
     for (const k of ["A", "B"] as const) {
       if (!m.getSource(`radar${k}`)) m.addSource(`radar${k}`, { type: "image", url: url(cur.passIndex), coordinates: corners });
       if (!m.getLayer(`radar${k}`)) m.addLayer({ id: `radar${k}`, type: "raster", source: `radar${k}`,
@@ -56,7 +63,7 @@ export default function RiverMap(p: Props) {
     if (w && !m.getLayer("water")) m.addLayer({ id: "water", type: "raster", source: "water", paint: { "raster-opacity": 0, "raster-fade-duration": 0 } });
     if (!m.getSource("loss")) m.addSource("loss", { type: "image", url: dataUrl(p.data.manifest.loss), coordinates: corners });
     if (!m.getLayer("loss")) m.addLayer({ id: "loss", type: "raster", source: "loss", paint: { "raster-opacity": 0, "raster-fade-duration": 0 } });
-    shownPass.current = -1;
+    shownPass.current = "";
     syncOverlays(m);
   }
 
@@ -64,13 +71,14 @@ export default function RiverMap(p: Props) {
     const cur = props.current;
     if (!m.getLayer("radarA")) return;
     const op = cur.layers.radar ? cur.radarOpacity : 0;
-    if (shownPass.current !== cur.passIndex) {
+    const key = `${cur.passIndex}|${cur.channel ?? "HH"}`;
+    if (shownPass.current !== key) {
       // load the new pass into the hidden layer, then cross-fade
       const next = front.current === "A" ? "B" : "A";
       const src = m.getSource(`radar${next}`) as ImageSource | undefined;
-      src?.updateImage({ url: dataUrl(passes[cur.passIndex].radar), coordinates: corners });
+      src?.updateImage({ url: dataUrl(radarFile(cur.passIndex)), coordinates: corners });
       front.current = next;
-      shownPass.current = cur.passIndex;
+      shownPass.current = key;
       const w = passes[cur.passIndex].water;
       if (w) (m.getSource("water") as ImageSource | undefined)?.updateImage({ url: dataUrl(w), coordinates: corners });
     }
@@ -200,7 +208,7 @@ export default function RiverMap(p: Props) {
     if (m && ready.current) syncOverlays(m);
     overlay.current?.setProps({ layers: deckLayers() });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [p.passIndex, p.layers, p.radarOpacity, p.selectedId, p.threeD, p.data]);
+  }, [p.passIndex, p.layers, p.radarOpacity, p.selectedId, p.threeD, p.data, p.channel]);
 
   // 3D view
   useEffect(() => {

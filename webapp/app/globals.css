@@ -267,3 +267,5 @@ input[type="range"] { accent-color: var(--monsoon); width: 100%; }
 .nasa-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; font-size: 13.5px; }
 .nasa-list li { padding-left: 12px; border-left: 3px solid #57b8c9; }
 .nasa-list .muted { font-size: 13px; margin-top: 2px; }
+.nasa-tag { display: inline-block; margin-left: 6px; padding: 0 5px; border-radius: 4px; font-size: 9.5px; font-weight: 700; letter-spacing: .04em;
+  color: #0b161d; background: #8fd3e8; vertical-align: 1px; line-height: 15px; }

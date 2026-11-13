@@ -22,4 +22,22 @@ export const NASA_DATA: NasaDataset[] = [
     role: "The “NASA daily” map: what an optical satellite saw on each pass date, usually cloud",
     url: "https://www.earthdata.nasa.gov/eosdis/science-system-description/eosdis-components/gibs",
   },
+  {
+    name: "OPERA DSWx-HLS surface water",
+    from: "NASA JPL OPERA, via NASA GIBS (PO.DAAC archive)",
+    role: "An independent water map from optical satellites, to check our NISAR water masks on clear days (Track record tab)",
+    url: "https://www.jpl.nasa.gov/go/opera/products/dswx-product-suite/",
+  },
+  {
+    name: "HLS, Harmonized Landsat and Sentinel-2",
+    from: "NASA HLS v2.0, via NASA GIBS",
+    role: "The optical side of the optical-and-radar swipe on the Live map: what a camera saw near each pass date",
+    url: "https://www.earthdata.nasa.gov/data/projects/hls",
+  },
+  {
+    name: "POWER daily precipitation",
+    from: "NASA POWER (MERRA-2 and GEOS-IT)",
+    role: "Rain before each pass at the box centre, on the Radar passes tab, for our hypotheses on what drives the river",
+    url: "https://power.larc.nasa.gov/",
+  },
 ];

@@ -11,8 +11,11 @@ import { DEFAULT_LAYERS, type MapLayers } from "@/lib/mapLayers";
 import { BASEMAPS, type BasemapId } from "@/lib/basemaps";
 import { useRiver } from "@/lib/data";
 import { useProof } from "@/lib/proof";
+import { useJson } from "@/lib/extra";
 import { fmtDate, latStr, lonStr, nf, parseDate } from "@/lib/format";
 
+// layers computed from NASA-ISRO NISAR carry a NASA tag
+const FROM_NISAR = new Set<keyof MapLayers>(["radar", "water", "loss", "banks", "firstBank", "segments"]);
 const LAYER_LABELS: [keyof MapLayers, string, string][] = [
   ["radar", "NISAR radar (HH)", "#cfd8dc"],
   ["water", "Water on this pass", "#57b8c9"],
@@ -37,6 +40,9 @@ export default function MapPage() {
   const [compare, setCompare] = useState(false);
   const [before, setBefore] = useState(0);
   const [mainMap, setMainMap] = useState<MLMap | null>(null);
+  const [channel, setChannel] = useState<"HH" | "HV">("HH");
+  const [leftSide, setLeftSide] = useState<"radar" | "optical">("radar");
+  const hls = useJson<{ by_pass: Record<string, { date: string; layer: string; sensor: string }> }>("hls.json");
 
   const segs = useMemo(() => data?.segments.features.map((f) => f.properties) ?? [], [data]);
   const P = data?.manifest.passes ?? [];
@@ -47,6 +53,7 @@ export default function MapPage() {
     const q = sp.get("seg");
     if (q) setSel(q);
     if (sp.get("compare") !== null) setCompare(true);
+    if (sp.get("compare") === "optical") setLeftSide("optical");
   }, []);
   useEffect(() => {
     if (!playing || !P.length) return;
@@ -92,11 +99,12 @@ export default function MapPage() {
 
   return (
     <main className="map-shell">
-      <RiverMap data={data} passIndex={idx} basemap={basemap} layers={layers} radarOpacity={opacity} threeD={threeD && !compare}
+      <RiverMap data={data} passIndex={idx} basemap={basemap} layers={layers} radarOpacity={opacity} channel={channel} threeD={threeD && !compare}
         selectedId={sel} onSelect={(id) => setSel(id)} onMapReady={setMainMap} />
       {compare && mainMap && (
         <CompareMap data={data} main={mainMap} beforeIndex={Math.min(before, idx)} afterIndex={idx} basemap={basemap}
-          radarOpacity={layers.radar ? opacity : 0} showWater={layers.water} />
+          radarOpacity={layers.radar ? opacity : 0} showWater={layers.water}
+          optical={leftSide === "optical" ? hls?.by_pass[P[idx].date] ?? null : null} />
       )}
 
       <div className="float stamp" aria-live="polite">
@@ -114,26 +122,41 @@ export default function MapPage() {
           <input type="checkbox" checked={compare} onChange={(e) => setCompare(e.target.checked)} /></label>
         {compare && (
           <div className="compare-pick">
-            <span className="muted">Before</span>
-            <select value={Math.min(before, idx)} onChange={(e) => setBefore(Number(e.target.value))} aria-label="Before pass">
-              {P.map((p, i) => <option key={p.date} value={i} disabled={i >= idx}>{fmtDate(p.date, true)}</option>)}
+            <span className="muted">Left side</span>
+            <select value={leftSide} onChange={(e) => setLeftSide(e.target.value as "radar" | "optical")} aria-label="Left side shows">
+              <option value="radar">An earlier NISAR pass</option>
+              <option value="optical" disabled={!hls}>NASA HLS optical, nearest clear day</option>
             </select>
+            {leftSide === "radar" ? <>
+              <span className="muted">Before</span>
+              <select value={Math.min(before, idx)} onChange={(e) => setBefore(Number(e.target.value))} aria-label="Before pass">
+                {P.map((p, i) => <option key={p.date} value={i} disabled={i >= idx}>{fmtDate(p.date, true)}</option>)}
+              </select>
+            </> : <span className="muted">Optical from NASA HLS: what a camera saw within 6 days of the pass. Monsoon cloud is the point.</span>}
             <span className="muted">After: pick a date on the timeline</span>
           </div>
         )}
         <div className="ctrl-title">Basemap</div>
         <div className="chips">
           {BASEMAPS.map((b) => (
-            <button key={b.id} type="button" className="chip" aria-pressed={basemap === b.id} title={b.note} onClick={() => setBasemap(b.id)}>{b.name}</button>
+            <button key={b.id} type="button" className="chip" aria-pressed={basemap === b.id} title={b.note} onClick={() => setBasemap(b.id)}>{b.name}{b.id === "nasa" && <span className="nasa-tag">NASA</span>}</button>
           ))}
         </div>
         <div className="ctrl-title">Layers</div>
         {LAYER_LABELS.map(([k, label, col]) => (
           <label key={k} className="toggle">
-            <span><i className="swatch" style={{ background: col }} />{label}</span>
+            <span><i className="swatch" style={{ background: col }} />{label}{FROM_NISAR.has(k) && <span className="nasa-tag" title="Computed from NASA-ISRO NISAR L2 GCOV">NASA</span>}</span>
             <input type="checkbox" checked={layers[k]} onChange={(e) => setLayers({ ...layers, [k]: e.target.checked })} />
           </label>
         ))}
+        {P.some((p) => p.radar_hv) && <>
+          <div className="ctrl-title">Radar channel</div>
+          <div className="chips">
+            <button type="button" className="chip" aria-pressed={channel === "HH"} onClick={() => setChannel("HH")} title="HH: water is dark, land is bright">HH<span className="nasa-tag">NASA</span></button>
+            <button type="button" className="chip" aria-pressed={channel === "HV"} onClick={() => setChannel("HV")} title="HV: brighter where radar scatters inside crops and grass">HV<span className="nasa-tag">NASA</span></button>
+          </div>
+          <p className="note" style={{ marginTop: 6 }}>HH shows water against land. HV lights up vegetation, such as crops and grass on the chars.{channel === "HV" && !P[idx].radar_hv ? " HV is not exported for this pass; showing HH." : ""}</p>
+        </>}
         <div className="ctrl-title">Radar opacity</div>
         <input type="range" min={0} max={1} step={0.05} value={opacity} onChange={(e) => setOpacity(Number(e.target.value))} aria-label="Radar opacity" />
         <div className="ctrl-title">View</div>

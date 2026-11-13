@@ -98,6 +98,9 @@ NASA data:
 
 - NASA-ISRO NISAR L-band L2 GCOV (HH), track 69 frame 14, 8 passes, via the NASA Alaska Satellite Facility DAAC (provisional products)
 - NASA GIBS daily VIIRS (Suomi NPP) Corrected Reflectance true colour, the "NASA daily" map on each pass date
+- NASA HLS v2.0 (Harmonized Landsat and Sentinel-2) true colour via NASA GIBS, the optical side of the optical-and-radar swipe (`data/hls_days_2026.json`)
+- NASA JPL OPERA DSWx-HLS surface water via NASA GIBS, an independent check of our NISAR water masks (`tools/dswx_check.py`, `src/compute/validate.py`)
+- NASA POWER daily precipitation (PRECTOTCORR; MERRA-2 and GEOS-IT) at the box centre, rain before each pass (`data/nasa_power_precip_2026.json`, `src/compute/rain.py`)
 
 Other data:
 

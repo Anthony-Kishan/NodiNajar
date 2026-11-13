@@ -31,6 +31,8 @@ Add a row for every other tool (ChatGPT, Copilot, image or voice generators, tra
 
 - **2026-11-13 (hackathon day 1):** Read the challenge statement and the Bangladesh Participants Guide with the team lead and wrote the day plan. Updated the README (data status, prior-work disclosure, data credits) and added NASA data layers to the web app as listed in the commit messages.
 
+- **2026-11-13 (hackathon day 1, later):** Claude did the day's data tasks the team had split three ways. NASA POWER rainfall (`src/compute/rain.py`, tests, `src/pipeline/export_rain.py`, chart on Radar passes); NASA HLS optical days and the optical-and-radar swipe; the OPERA DSWx-HLS water check (`src/compute/validate.py`, tests, `tools/dswx_check.py`, Track record section); NASA tags on map layers; two more news reports (GT019, GT020); a phone-width check of every page. The data was read in the team lead's browser because NASA hosts were blocked from the build machine; the rainfall series was copied from that browser and checked against its total (1442.4 mm) and sample days.
+
 ## What the AI did not do
 
 - No AI computes any number shown in the demo. All figures come from `src/compute`, which is deterministic and unit-tested.
