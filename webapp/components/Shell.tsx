@@ -5,13 +5,14 @@ import type { ReactNode } from "react";
 import { useNow, useRiver } from "@/lib/data";
 import { fmtDate } from "@/lib/format";
 import { nextPass } from "@/lib/schedule";
-import { IconBell, IconCheck, IconBook, IconGrid, IconMap, IconSat, IconShield, IconWaves, Mark } from "./Icons";
+import { IconBell, IconCheck, IconLayers, IconBook, IconGrid, IconMap, IconSat, IconShield, IconWaves, Mark } from "./Icons";
 
 const TABS = [
   { href: "/", label: "Overview", icon: IconGrid },
   { href: "/map/", label: "Live map", icon: IconMap },
   { href: "/banks/", label: "Bank stretches", icon: IconWaves },
   { href: "/passes/", label: "Radar passes", icon: IconSat },
+  { href: "/why/", label: "Why it moves", icon: IconLayers },
   { href: "/proof/", label: "Track record", icon: IconCheck },
   { href: "/alerts/", label: "Alerts", icon: IconBell },
   { href: "/embankments/", label: "Embankments", icon: IconShield, tag: "next" },

@@ -1,0 +1,104 @@
+{
+ "note": "Over the 38 stretches the engine flagged (chosen because they moved), so the shares are not for the whole river.",
+ "intervals": [
+  {
+   "from": "2026-06-18",
+   "to": "2026-06-30",
+   "water_from_km2": 453.89,
+   "water_to_km2": 610.29,
+   "river": "rising",
+   "n": 32,
+   "median_change_m": 40.0,
+   "share_inland_pct": 66,
+   "share_riverward_pct": 0
+  },
+  {
+   "from": "2026-06-30",
+   "to": "2026-07-12",
+   "water_from_km2": 610.29,
+   "water_to_km2": 521.16,
+   "river": "falling",
+   "n": 22,
+   "median_change_m": -12.5,
+   "share_inland_pct": 0,
+   "share_riverward_pct": 45
+  },
+  {
+   "from": "2026-07-12",
+   "to": "2026-07-24",
+   "water_from_km2": 521.16,
+   "water_to_km2": 967.28,
+   "river": "rising",
+   "n": 19,
+   "median_change_m": 60.0,
+   "share_inland_pct": 68,
+   "share_riverward_pct": 0
+  },
+  {
+   "from": "2026-07-24",
+   "to": "2026-08-17",
+   "water_from_km2": 967.28,
+   "water_to_km2": 462.95,
+   "river": "falling",
+   "n": 15,
+   "median_change_m": -115.0,
+   "share_inland_pct": 13,
+   "share_riverward_pct": 80
+  },
+  {
+   "from": "2026-08-17",
+   "to": "2026-08-29",
+   "water_from_km2": 462.95,
+   "water_to_km2": 659.84,
+   "river": "rising",
+   "n": 20,
+   "median_change_m": 72.5,
+   "share_inland_pct": 65,
+   "share_riverward_pct": 0
+  },
+  {
+   "from": "2026-08-29",
+   "to": "2026-09-10",
+   "water_from_km2": 659.84,
+   "water_to_km2": 732.29,
+   "river": "rising",
+   "n": 34,
+   "median_change_m": 30.0,
+   "share_inland_pct": 56,
+   "share_riverward_pct": 0
+  },
+  {
+   "from": "2026-09-10",
+   "to": "2026-09-22",
+   "water_from_km2": 732.29,
+   "water_to_km2": 622.66,
+   "river": "falling",
+   "n": 38,
+   "median_change_m": -7.5,
+   "share_inland_pct": 3,
+   "share_riverward_pct": 24
+  }
+ ],
+ "same_stage": [
+  {
+   "a": "2026-06-18",
+   "b": "2026-08-17",
+   "water_a_km2": 453.89,
+   "water_b_km2": 462.95,
+   "n": 21,
+   "median_change_m": -20.0,
+   "share_inland_pct": 14,
+   "share_riverward_pct": 38
+  },
+  {
+   "a": "2026-06-30",
+   "b": "2026-09-22",
+   "water_a_km2": 610.29,
+   "water_b_km2": 622.66,
+   "n": 32,
+   "median_change_m": 22.5,
+   "share_inland_pct": 47,
+   "share_riverward_pct": 19
+  }
+ ]
+}

@@ -33,6 +33,8 @@ Add a row for every other tool (ChatGPT, Copilot, image or voice generators, tra
 
 - **2026-11-13 (hackathon day 1, later):** Claude did the day's data tasks the team had split three ways. NASA POWER rainfall (`src/compute/rain.py`, tests, `src/pipeline/export_rain.py`, chart on Radar passes); NASA HLS optical days and the optical-and-radar swipe; the OPERA DSWx-HLS water check (`src/compute/validate.py`, tests, `tools/dswx_check.py`, Track record section); NASA tags on map layers; two more news reports (GT019, GT020); a phone-width check of every page. The data was read in the team lead's browser because NASA hosts were blocked from the build machine; the rainfall series was copied from that browser and checked against its total (1442.4 mm) and sample days.
 
+- **2026-11-13 (hackathon day 1, afternoon):** Claude wrote the Why it moves tab (`webapp/app/why/page.tsx`) and `src/compute/drivers.py` with tests. The analysis found that the measured bank moves with the water level between passes, so part of the pass-to-pass change is the waterline, and the page says so. Driver statements cite Banglapedia, Shampa et al. 2025 (Frontiers in Earth Science), a 2020 UNB report on sand lifting and NASA JPL's NISAR science page, each opened before citing. The team lead ran the HV download and export.
+
 ## What the AI did not do
 
 - No AI computes any number shown in the demo. All figures come from `src/compute`, which is deterministic and unit-tested.
