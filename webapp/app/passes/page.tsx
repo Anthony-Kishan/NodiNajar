@@ -1,6 +1,7 @@
 "use client";
 import { ErrorBox, Loading } from "@/components/Bits";
-import { WaterChart } from "@/components/Charts";
+import { RainChart, WaterChart } from "@/components/Charts";
+import { useJson, type RainFile } from "@/lib/extra";
 import { Footer } from "@/components/Shell";
 import { dataUrl, useNow, useRiver } from "@/lib/data";
 import { fmtDate, nf } from "@/lib/format";
@@ -9,6 +10,7 @@ import { expectedPasses, gaps } from "@/lib/schedule";
 export default function Passes() {
   const { data, error } = useRiver();
   const now = useNow(60_000);
+  const rain = useJson<RainFile>("rain.json");
   if (error) return <ErrorBox error={error} />;
   if (!data) return <Loading />;
   const m = data.manifest, P = m.passes, G = gaps(m);
@@ -28,6 +30,29 @@ export default function Passes() {
           <p className="sub">{G.length ? `No NISAR pass between ${fmtDate(G[0].from)} and ${fmtDate(G[0].to)} (${G[0].days} days).` : "Every 12-day pass is present."} Thresholds are set per pass from the radar histogram; passes without a clear valley use the season median.</p>
           <WaterChart passes={P} gaps={G} height={250} />
         </div>
+        {rain && (() => {
+          const wettest = [...rain.by_pass].sort((a, b) => b.rain_window_mm - a.rain_window_mm)[0];
+          const peak = [...P].sort((a, b) => b.water_km2 - a.water_km2)[0];
+          return (
+            <div className="card" style={{ marginBottom: 16 }}>
+              <div className="card-head">
+                <div>
+                  <h3>Rain before each pass</h3>
+                  <p className="sub">Daily rain from NASA POWER at the box centre, with the NISAR pass dates as dashed lines. The wettest 12 days ended on {fmtDate(wettest.date, true)} ({nf(wettest.rain_window_mm, 0)} mm); the river was widest on {fmtDate(peak.date, true)} ({nf(peak.water_km2, 0)} km²).</p>
+                </div>
+                <span className="badge">NASA POWER</span>
+              </div>
+              <RainChart daily={rain.daily} passDates={P.map((p) => p.date)} />
+              <div className="table-wrap" style={{ marginTop: 10 }}>
+                <table className="data">
+                  <thead><tr><th>Pass</th>{rain.by_pass.map((r) => <th key={r.date}>{fmtDate(r.date)}</th>)}</tr></thead>
+                  <tbody><tr><td>Rain in the 12 days before (mm)</td>{rain.by_pass.map((r) => <td key={r.date} className="num">{nf(r.rain_window_mm, 0)}</td>)}</tr></tbody>
+                </table>
+              </div>
+              <p className="note">Hypothesis, not a finding: the Jamuna rises on rain over its whole basin upstream in India and Bhutan, so local rain only hints at the timing. {rain.note} Source: {rain.source}.</p>
+            </div>
+          );
+        })()}
         <div className="grid g-4">
           {P.map((p) => (
             <article key={p.date} className="card" style={{ padding: 12 }}>

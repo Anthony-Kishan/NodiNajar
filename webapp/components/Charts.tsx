@@ -137,3 +137,22 @@ export function ForecastCheckChart({ rows, height = 300 }: { rows: { id: string;
     </ResponsiveContainer>
   );
 }
+
+/** Daily rain (NASA POWER) with the NISAR pass dates marked. */
+export function RainChart({ daily, passDates, height = 220 }: { daily: { date: string; mm: number }[]; passDates: string[]; height?: number }) {
+  const rows = daily.map((d) => ({ t: parseDate(d.date).getTime(), mm: d.mm }));
+  return (
+    <ResponsiveContainer width="100%" height={height}>
+      <BarChart data={rows} margin={{ top: 10, right: 12, left: -6, bottom: 0 }} barCategoryGap={1}>
+        <CartesianGrid stroke={C.grid} strokeDasharray="3 4" vertical={false} />
+        <XAxis dataKey="t" type="number" scale="time" domain={["dataMin", "dataMax"]} {...axis}
+          tickFormatter={(t) => fmtDate(new Date(t))} ticks={passDates.map((d) => parseDate(d).getTime())} />
+        <YAxis {...axis} width={48} unit="" />
+        <Tooltip {...tip} cursor={{ fill: "rgba(87,184,201,.08)" }} labelFormatter={(t) => fmtDate(new Date(Number(t)), true)}
+          formatter={((v: number) => [`${v} mm`, "Rain that day"]) as never} />
+        {passDates.map((d) => <ReferenceLine key={d} x={parseDate(d).getTime()} stroke="#e8eef1" strokeOpacity={0.35} strokeDasharray="3 3" />)}
+        <Bar dataKey="mm" fill="#6d9fd6" radius={[2, 2, 0, 0]} />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}
