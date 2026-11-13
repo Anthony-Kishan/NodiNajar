@@ -1,10 +1,10 @@
 "use client";
 import { useEffect, useRef } from "react";
-import maplibregl, { type ImageSource, type Map as MLMap } from "maplibre-gl";
+import maplibregl, { type ImageSource, type Map as MLMap, type RasterTileSource } from "maplibre-gl";
 import { MapboxOverlay } from "@deck.gl/mapbox";
 import { ColumnLayer, GeoJsonLayer, PathLayer, ScatterplotLayer } from "@deck.gl/layers";
 import type { PickingInfo } from "@deck.gl/core";
-import { basemapStyle, type BasemapId } from "@/lib/basemaps";
+import { basemapStyle, gibsTiles, type BasemapId } from "@/lib/basemaps";
 import { dataUrl } from "@/lib/data";
 import type { Feature, Level, RiverData, SegmentProps } from "@/lib/types";
 import type { MapLayers } from "@/lib/mapLayers";
@@ -138,7 +138,7 @@ export default function RiverMap(p: Props) {
     if (!el.current) return;
     const [w, s, e, n] = p.data.manifest.aoi_bbox;
     const m = new maplibregl.Map({
-      container: el.current, style: basemapStyle(p.basemap), bounds: [[w, s], [e, n]],
+      container: el.current, style: basemapStyle(p.basemap, p.data.manifest.passes[p.passIndex].date), bounds: [[w, s], [e, n]],
       fitBoundsOptions: { padding: p.compact ? 20 : { top: 80, bottom: 140, left: 40, right: 40 } },
       attributionControl: { compact: true }, maxPitch: 75, dragRotate: !p.compact, cooperativeGestures: !!p.compact,
     });
@@ -182,8 +182,17 @@ export default function RiverMap(p: Props) {
     if (!m || lastBase.current === p.basemap) return;
     lastBase.current = p.basemap;
     ready.current = false;
-    m.setStyle(basemapStyle(p.basemap));
+    m.setStyle(basemapStyle(p.basemap, passes[props.current.passIndex].date));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p.basemap]);
+
+  // NASA daily imagery follows the selected pass date
+  useEffect(() => {
+    const m = map.current;
+    if (!m || p.basemap !== "nasa" || !ready.current) return;
+    (m.getSource("imagery") as RasterTileSource | undefined)?.setTiles(gibsTiles(passes[p.passIndex].date));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [p.passIndex, p.basemap]);
 
   // overlays and deck layers follow props
   useEffect(() => {

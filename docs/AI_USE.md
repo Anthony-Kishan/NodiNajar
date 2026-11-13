@@ -27,6 +27,10 @@ Add a row for every other tool (ChatGPT, Copilot, image or voice generators, tra
 
 - **2026-10-13 (later):** Switched the web app basemaps to keyless Esri services after CARTO raster tiles began returning "API KEY REQUIRED" images, and added a before/after swipe compare on the Live map (`webapp/components/CompareMap.tsx`). No numbers changed; the compare view shows the existing radar and water images for two real passes.
 
+- **2026-10-14:** Collected 2026 erosion reports from Bangladeshi newspapers into `ground_truth/events.csv` (GT007 split into GT007a to e, GT009 to GT018) and pinned some places from Google Maps and OpenStreetMap labels, marked "team to verify". Wrote `src/compute/forecast.py`, `src/compute/hindcast.py`, `src/pipeline/scorecard.py`, their tests, and the Track record tab. The numbers come from the tested code, not from the AI.
+
+- **2026-11-13 (hackathon day 1):** Read the challenge statement and the Bangladesh Participants Guide with the team lead and wrote the day plan. Updated the README (data status, prior-work disclosure, data credits) and added NASA data layers to the web app as listed in the commit messages.
+
 ## What the AI did not do
 
 - No AI computes any number shown in the demo. All figures come from `src/compute`, which is deterministic and unit-tested.

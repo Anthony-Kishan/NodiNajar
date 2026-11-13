@@ -6,6 +6,7 @@ import { LevelBars, RiverProfile, WaterChart } from "@/components/Charts";
 import { RiverMap } from "@/components/MapClient";
 import { DEFAULT_LAYERS } from "@/lib/mapLayers";
 import { Footer } from "@/components/Shell";
+import { NasaDataCard } from "@/components/NasaData";
 import { useNow, useRiver } from "@/lib/data";
 import { fmtDate, nf } from "@/lib/format";
 import { expectedPasses, gaps } from "@/lib/schedule";
@@ -49,6 +50,8 @@ export default function Overview() {
           <Kpi label="Largest bank movement" value={t.max_retreat_m} unit="m" accent="var(--monsoon)" foot={<>Over {m.period_days} days, one 500 m stretch</>} />
           <Kpi label="Homes near the new bank" value={nf(t.homes_near_new_bank)} accent="var(--home)" foot={<>Overture Maps buildings within 200 m</>} />
         </section>
+
+        <section style={{ marginTop: 16 }}><NasaDataCard /></section>
 
         <section className="grid g-3" style={{ marginTop: 16 }}>
           <div className="card span-2" style={{ padding: 0, overflow: "hidden", display: "flex", flexDirection: "column" }}>

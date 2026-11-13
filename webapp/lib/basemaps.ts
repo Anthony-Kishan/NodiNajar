@@ -1,9 +1,10 @@
 import type { StyleSpecification } from "maplibre-gl";
 
-export type BasemapId = "satellite" | "sentinel" | "terrain" | "streets" | "dark";
+export type BasemapId = "satellite" | "nasa" | "sentinel" | "terrain" | "streets" | "dark";
 
 export const BASEMAPS: { id: BasemapId; name: string; note: string }[] = [
   { id: "satellite", name: "Satellite", note: "Esri World Imagery, high-resolution photos" },
+  { id: "nasa", name: "NASA daily", note: "NASA GIBS: VIIRS true colour on the pass date. The monsoon clouds that NISAR's radar sees through." },
   { id: "sentinel", name: "Sentinel-2", note: "EOX Sentinel-2 cloudless 2025, true colour" },
   { id: "terrain", name: "Terrain", note: "Esri World Topographic with shaded relief" },
   { id: "streets", name: "Streets", note: "Esri World Street Map" },
@@ -24,8 +25,14 @@ const DEM = {
   attribution: "Elevation: Mapzen Terrain Tiles (AWS Open Data)",
 };
 
+/** NASA GIBS daily true-colour tiles (VIIRS on Suomi NPP) for one date, YYYY-MM-DD. Keyless, global, 375 m. */
+export const gibsTiles = (date: string) => [
+  `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_SNPP_CorrectedReflectance_TrueColor/default/${date}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg`,
+];
+export const GIBS_ATTR = 'Imagery: <a href="https://www.earthdata.nasa.gov/eosdis/science-system-description/eosdis-components/gibs">NASA GIBS</a>, VIIRS SNPP Corrected Reflectance';
+
 /** Raster-only styles (no fonts or sprites needed), each with a DEM source for hillshade and 3D terrain. */
-export function basemapStyle(id: BasemapId): StyleSpecification {
+export function basemapStyle(id: BasemapId, date?: string): StyleSpecification {
   const sources: StyleSpecification["sources"] = { dem: DEM };
   const layers: StyleSpecification["layers"] = [{ id: "bg", type: "background", paint: { "background-color": "#0b161d" } }];
   const raster = (key: string, tiles: string[], attribution: string, maxzoom = 19, paint: Record<string, unknown> = {}) => {
@@ -34,6 +41,9 @@ export function basemapStyle(id: BasemapId): StyleSpecification {
   };
   if (id === "satellite") {
     raster("imagery", esri("World_Imagery"), "Imagery © Esri, Maxar, Earthstar Geographics", 19, { "raster-saturation": -0.1 });
+    raster("labels", LABELS, ESRI_ATTR, 19, { "raster-opacity": 0.9 });
+  } else if (id === "nasa") {
+    raster("imagery", gibsTiles(date ?? "2026-09-22"), GIBS_ATTR, 9);
     raster("labels", LABELS, ESRI_ATTR, 19, { "raster-opacity": 0.9 });
   } else if (id === "sentinel") {
     raster("imagery", ["https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2025_3857/default/g/{z}/{y}/{x}.jpg"],

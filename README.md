@@ -4,7 +4,11 @@
 
 NodiNajar uses NASA-ISRO NISAR L-band radar, which sees through monsoon cloud, to measure how far riverbanks move between passes. It marks 500 m cells where the bank is retreating toward homes and turns that into a Bangla voice and SMS alert. The proof site is the Jamuna River in Sirajganj, Bangladesh.
 
-> **Data status:** NISAR products are **provisional** (validated at a limited set of sites). The demo currently ships with **synthetic test scenes** placed on the real track 69 pass dates. The interface says so in red until real NISAR scenes are loaded. Never present synthetic output as real.
+> **Data status:** NISAR products are **provisional** (validated at a limited set of sites). The web app in `webapp/` (live at nodinajar.vercel.app) uses 8 real NISAR L2 GCOV passes over the Jamuna, 18 June to 22 September 2026. The older offline demo in `web/` can still run on synthetic test scenes, and then says SYNTHETIC on screen.
+
+## Prior work (disclosure)
+
+Part of this project was prepared before the hackathon, between 10 and 19 October 2026: the NISAR pipeline and bank-line engine, the first web app, the forecast and the news back-test, and Video 1. Our Local Lead allowed us to use it, provided we say so. Everything committed from 13 November 2026 onward was built during the Bangladesh hackathon (13 to 14 November). The commit history shows which is which.
 
 ## Run the demo (no internet needed)
 
@@ -90,10 +94,17 @@ How we work together: [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## Data and credits
 
-- NASA-ISRO NISAR L-band L2 GCOV, via NASA Alaska Satellite Facility DAAC (provisional)
-- Sentinel-1 (ESA, Copernicus) via ASF, for history and fallback
-- Google Open Buildings (homes), news reports listed in `ground_truth/events.csv`
-- MapLibre GL JS 4.7.1 (BSD-3-Clause, `web/vendor/MAPLIBRE_LICENSE.txt`)
+NASA data:
+
+- NASA-ISRO NISAR L-band L2 GCOV (HH), track 69 frame 14, 8 passes, via the NASA Alaska Satellite Facility DAAC (provisional products)
+- NASA GIBS daily VIIRS (Suomi NPP) Corrected Reflectance true colour, the "NASA daily" map on each pass date
+
+Other data:
+
+- Overture Maps buildings (homes near the bank), Overture Maps Foundation
+- Basemaps: Esri World Imagery, Topographic, Street and Dark Gray Canvas; Sentinel-2 cloudless 2025 by EOX (Copernicus Sentinel data, CC BY-NC-SA 4.0); Mapzen Terrain Tiles on AWS Open Data (built partly from NASA SRTM)
+- Bangladeshi newspaper reports of erosion, each linked in `ground_truth/events.csv`
+- Software: Next.js, MapLibre GL, deck.gl, Recharts, NumPy, h5py and the other libraries in `requirements.txt` and `webapp/package.json`
 
 Licence: Apache-2.0 (see `LICENSE`).
 
@@ -101,10 +112,11 @@ Licence: Apache-2.0 (see `LICENSE`).
 
 The dashboard in `webapp/` is the blueprint front end: Next.js, MapLibre GL, deck.gl and Recharts, with satellite,
 Sentinel-2, terrain and street basemaps under the NISAR radar. Tabs: Overview, Live map, Bank stretches, Radar passes,
-Alerts, Embankments (next) and Methods & data. It works on phones, tablets and desktops.
+Track record, Alerts, Embankments (next) and Methods & data. It works on phones, tablets and desktops.
 
 ```bash
 python -m src.pipeline.export_web      # copy the latest results into webapp/public/data
+python -m src.pipeline.scorecard       # forecast + news back-test (Track record tab)
 cd webapp && npm install && npm run dev
 ```
 

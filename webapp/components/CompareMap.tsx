@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import maplibregl, { type ImageSource, type Map as MLMap } from "maplibre-gl";
-import { basemapStyle, type BasemapId } from "@/lib/basemaps";
+import maplibregl, { type ImageSource, type Map as MLMap, type RasterTileSource } from "maplibre-gl";
+import { basemapStyle, gibsTiles, type BasemapId } from "@/lib/basemaps";
 import { dataUrl } from "@/lib/data";
 import { fmtDate } from "@/lib/format";
 import type { RiverData } from "@/lib/types";
@@ -51,7 +51,7 @@ export default function CompareMap(p: Props) {
     if (!el.current) return;
     const src = p.main;
     const m = new maplibregl.Map({
-      container: el.current, style: basemapStyle(p.basemap), interactive: false, attributionControl: false,
+      container: el.current, style: basemapStyle(p.basemap, p.data.manifest.passes[p.beforeIndex].date), interactive: false, attributionControl: false,
       center: src.getCenter(), zoom: src.getZoom(), bearing: src.getBearing(), pitch: src.getPitch(), maxPitch: 75,
     });
     map.current = m;
@@ -72,8 +72,9 @@ export default function CompareMap(p: Props) {
     if (pass.water && m.getSource("water")) (m.getSource("water") as ImageSource).updateImage({ url: dataUrl(pass.water), coordinates: corners });
     m.setPaintProperty("radar", "raster-opacity", p.radarOpacity);
     if (m.getLayer("water")) m.setPaintProperty("water", "raster-opacity", p.showWater ? 0.9 : 0);
+    if (p.basemap === "nasa") (m.getSource("imagery") as RasterTileSource | undefined)?.setTiles(gibsTiles(pass.date));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [p.beforeIndex, p.radarOpacity, p.showWater]);
+  }, [p.beforeIndex, p.radarOpacity, p.showWater, p.basemap]);
 
   // basemap
   const lastBase = useRef(p.basemap);
@@ -81,7 +82,7 @@ export default function CompareMap(p: Props) {
     const m = map.current;
     if (!m || lastBase.current === p.basemap) return;
     lastBase.current = p.basemap;
-    m.setStyle(basemapStyle(p.basemap));
+    m.setStyle(basemapStyle(p.basemap, passes[props.current.beforeIndex].date));
   }, [p.basemap]);
 
   // divider dragging (mouse, touch, pen) and keyboard

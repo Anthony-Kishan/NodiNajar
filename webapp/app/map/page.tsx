@@ -10,6 +10,7 @@ import type { Map as MLMap } from "maplibre-gl";
 import { DEFAULT_LAYERS, type MapLayers } from "@/lib/mapLayers";
 import { BASEMAPS, type BasemapId } from "@/lib/basemaps";
 import { useRiver } from "@/lib/data";
+import { useProof } from "@/lib/proof";
 import { fmtDate, latStr, lonStr, nf, parseDate } from "@/lib/format";
 
 const LAYER_LABELS: [keyof MapLayers, string, string][] = [
@@ -24,6 +25,7 @@ const LAYER_LABELS: [keyof MapLayers, string, string][] = [
 
 export default function MapPage() {
   const { data, error } = useRiver();
+  const { forecast } = useProof();
   const [pass, setPass] = useState<number | null>(null);
   const [playing, setPlaying] = useState(false);
   const [basemap, setBasemap] = useState<BasemapId>("satellite");
@@ -100,6 +102,7 @@ export default function MapPage() {
       <div className="float stamp" aria-live="polite">
         <b className="num">{fmtDate(cur.date, true)}</b>
         <span>Pass {idx + 1} of {P.length} · {nf(cur.water_km2, 1)} km² water · threshold {cur.threshold_db} dB</span>
+        <span className="dim" style={{ fontSize: 11.5, display: "block" }}>Radar: NASA-ISRO NISAR L2 GCOV (provisional){basemap === "nasa" ? " · Map: NASA GIBS VIIRS, same day" : ""}</span>
       </div>
 
       <aside className={`float panel-left${panelOpen ? " open" : ""}`} aria-label="Map layers">
@@ -163,6 +166,18 @@ export default function MapPage() {
           <div className="dim" style={{ fontSize: 12.5, marginBottom: 4 }}>Bank position on each pass, metres into the land since 18 Jun</div>
           <RetreatChart dates={P.map((p) => p.date)} history={s.history_m} level={s.level} height={170} />
           <p className="note">A missing point means the bank line switched channel on that pass, so it is left out, not guessed.</p>
+          {(() => {
+            const f = forecast?.stretches.find((x) => x.id === s.id)?.forecast;
+            if (!f) return null;
+            if (!f.ok) return <p className="note">No forecast: {f.reason}.</p>;
+            const t = f.targets[Math.min(1, f.targets.length - 1)];
+            const base = f.last_measured.position_m;
+            return (
+              <p className="note"><b>Forecast (PROVISIONAL):</b> {f.advancing
+                ? <>about <b>{t.advance_m} m</b> further into the land by {fmtDate(t.date, true)} (range {Math.max(0, Math.round(t.low_m - base))}–{Math.round(t.high_m - base)} m), at {f.rate_m_per_12d} m per 12 days. <Link href="/proof/">How well has this worked?</Link></>
+                : <>the trend is not advancing on this stretch.</>}</p>
+            );
+          })()}
           <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
             <Link className="btn sm primary" href={`/alerts/?seg=${s.id}`}>Alert for this stretch</Link>
             <Link className="btn sm" href={`/banks/?seg=${s.id}`}>In the table</Link>
