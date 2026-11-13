@@ -7,12 +7,14 @@ import { Footer } from "@/components/Shell";
 import { useRiver } from "@/lib/data";
 import { fmtDate, latStr, nf } from "@/lib/format";
 import { OUTCOME, useProof, type FcPassCheck } from "@/lib/proof";
+import { useJson } from "@/lib/extra";
 
 const pct = (v?: number | null) => (v === undefined || v === null ? "–" : `${Math.round(v * 100)}%`);
 
 export default function Proof() {
   const { data, error } = useRiver();
   const { forecast: F, scorecard: S, loading } = useProof();
+  const dswx = useJson<{ product: string; grid: string; how?: string; by_date: Record<string, { n_compared: number; n_partial_skipped: number; n_cloud_skipped: number; agreement_pct: number; water_iou_pct: number; nisar_water_pct: number; dswx_water_pct: number; dswx_water_found_by_nisar_pct: number }> }>("dswx_check.json");
   const segs = useMemo(() => new Map((data?.segments.features ?? []).map((f) => [f.properties.id, f.properties])), [data]);
 
   if (error) return <ErrorBox error={error} />;
@@ -107,6 +109,37 @@ export default function Proof() {
           </div>
           <p className="note">“Further” is the expected extra movement into the land beyond the last measured bank, with the low–high range in brackets. A straight-line trend over one monsoon: treat it as a ranking of urgency, not a promise.</p>
         </section>
+
+        {/* ---------- 2b. independent water check ---------- */}
+        {dswx && (
+          <section className="card" style={{ marginBottom: 16 }}>
+            <div className="card-head">
+              <div>
+                <h3>Independent check: our radar water against NASA OPERA</h3>
+                <p className="sub">On days when Landsat or Sentinel-2 saw the river through a gap in the cloud on the same day as a NISAR pass, we compared our NISAR water mask with NASA JPL's OPERA DSWx-HLS surface-water map, cell by cell. Partial water and cloud are left out.</p>
+              </div>
+              <span className="badge">NASA OPERA</span>
+            </div>
+            <div className="table-wrap">
+              <table className="data">
+                <thead><tr><th>Day</th><th>Cells compared</th><th>Same answer</th><th>OPERA water also found by NISAR</th><th>Water share: NISAR / OPERA</th><th>Left out: cloud, partial</th></tr></thead>
+                <tbody>
+                  {Object.entries(dswx.by_date).map(([d, r]) => (
+                    <tr key={d}>
+                      <td className="num">{fmtDate(d, true)}</td>
+                      <td className="num">{nf(r.n_compared)}</td>
+                      <td className="num"><b>{r.agreement_pct}%</b></td>
+                      <td className="num">{r.dswx_water_found_by_nisar_pct}%</td>
+                      <td className="num">{r.nisar_water_pct}% / {r.dswx_water_pct}%</td>
+                      <td className="num">{nf(r.n_cloud_skipped)}, {nf(r.n_partial_skipped)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="note">{dswx.product}. Grid: {dswx.grid}. {dswx.how ?? ""} Reproduce with <code>python tools/dswx_check.py</code>.</p>
+          </section>
+        )}
 
         {/* ---------- 3. news check ---------- */}
         <section className="card">

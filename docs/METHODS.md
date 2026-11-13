@@ -43,3 +43,22 @@ Result on the 2026 run: 14 reports in the window. Only 2 fall near a measured ou
 Change from the plan: we had planned to count a report as caught only if its stretch was red at least 12 days before. Red needs 100 m of retreat plus homes, and neither on-bank stretch reached red, so under that rule both reports would count as missed. We report the watch-level (30 m) result and state the difference.
 
 Lesson for version 2: most losses reported this monsoon were on chars, where many families live. The water masks already cover the chars; tracking char edges is the next engine.
+
+## Independent water check with NASA OPERA DSWx-HLS (`src/compute/validate.py`)
+
+On 29 August (Landsat) and 10 September (Sentinel-2), an optical satellite passed on the same day as NISAR. We compared our NISAR water mask with NASA JPL's OPERA DSWx-HLS surface-water map on a common grid of about 75 m (every second pixel of the NASA GIBS zoom-12 tiles). Only cells DSWx calls clearly water or clearly not water are compared; partial water and cloud are counted and left out. Cloud hid most of the box both days.
+
+| Day | Cells compared | Same answer | OPERA water also found by NISAR | Water share NISAR / OPERA |
+| --- | --- | --- | --- | --- |
+| 29 Aug 2026 | 74,507 | 94.1% | 90.1% | 32.0% / 32.6% |
+| 10 Sep 2026 | 96,809 | 96.0% | 91.3% | 16.6% / 15.3% |
+
+These numbers were computed on 13 November in the browser with a JavaScript copy of `compare` (same classes and rules), because NASA GIBS was not reachable from our build machine. `python tools/dswx_check.py` reproduces them in Python on any machine that can reach gibs.earthdata.nasa.gov.
+
+## Rain before each pass (`src/compute/rain.py`)
+
+Daily precipitation from NASA POWER (PRECTOTCORR, MERRA-2 and GEOS-IT) at the box centre, summed over the 12 days up to each pass. The wettest window ended on 12 July (297 mm); the river was widest on 24 July. This is a hypothesis about timing, not a finding: the Jamuna rises on rain over its whole basin upstream, and one 50 km grid cell cannot show that.
+
+## Optical days (HLS)
+
+For the optical-and-radar swipe, each pass is paired with the HLS day within 6 days that had the fewest bright, cloud-like pixels on the GIBS tile at the box centre. The choice is recorded in `data/hls_days_2026.json`.

@@ -1,0 +1,27 @@
+{
+ "product": "NASA JPL OPERA DSWx-HLS surface water, read as the NASA GIBS layer OPERA_L3_Dynamic_Surface_Water_Extent-HLS",
+ "grid": "about 75 m, every 2nd pixel of GIBS zoom 12",
+ "how": "Same-day pairs: 29 Aug (Landsat) and 10 Sep (Sentinel-2). Cloud hid most of the box, so only the clear cells are compared. Run on 13 Nov 2026 in the browser with a JavaScript copy of src/compute/validate.compare (same classes and rules), because NASA GIBS was not reachable from our build machine.",
+ "by_date": {
+  "2026-08-29": {
+   "n_compared": 74507,
+   "n_partial_skipped": 21338,
+   "n_cloud_skipped": 475003,
+   "agreement_pct": 94.1,
+   "water_iou_pct": 83.4,
+   "nisar_water_pct": 32.0,
+   "dswx_water_pct": 32.6,
+   "dswx_water_found_by_nisar_pct": 90.1
+  },
+  "2026-09-10": {
+   "n_compared": 96809,
+   "n_partial_skipped": 17281,
+   "n_cloud_skipped": 391673,
+   "agreement_pct": 96.0,
+   "water_iou_pct": 77.6,
+   "nisar_water_pct": 16.6,
+   "dswx_water_pct": 15.3,
+   "dswx_water_found_by_nisar_pct": 91.3
+  }
+ }
+}
