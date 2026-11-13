@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import maplibregl, { type ImageSource, type Map as MLMap, type RasterTileSource } from "maplibre-gl";
-import { basemapStyle, gibsTiles, type BasemapId } from "@/lib/basemaps";
+import { basemapStyle, gibsTiles, hlsStyle, type BasemapId } from "@/lib/basemaps";
 import { dataUrl } from "@/lib/data";
 import { fmtDate } from "@/lib/format";
 import type { RiverData } from "@/lib/types";
@@ -15,6 +15,8 @@ interface Props {
   basemap: BasemapId;
   radarOpacity: number;
   showWater: boolean;
+  /** When set, the left side shows one day of NASA HLS optical imagery instead of an earlier radar pass. */
+  optical?: { layer: string; date: string; sensor: string } | null;
 }
 
 /**
@@ -32,8 +34,11 @@ export default function CompareMap(p: Props) {
   const corners = p.data.manifest.corners;
   const passes = p.data.manifest.passes;
 
+  const styleFor = (cur: Props) => (cur.optical ? hlsStyle(cur.optical.layer, cur.optical.date) : basemapStyle(cur.basemap, passes[cur.beforeIndex].date));
+
   function addOverlays(m: MLMap) {
     const cur = props.current;
+    if (cur.optical) return;
     const pass = passes[cur.beforeIndex];
     if (!m.getSource("radar")) m.addSource("radar", { type: "image", url: dataUrl(pass.radar), coordinates: corners });
     if (!m.getLayer("radar")) m.addLayer({ id: "radar", type: "raster", source: "radar", paint: { "raster-opacity": cur.radarOpacity, "raster-fade-duration": 0, "raster-contrast": 0.15 } });
@@ -51,7 +56,7 @@ export default function CompareMap(p: Props) {
     if (!el.current) return;
     const src = p.main;
     const m = new maplibregl.Map({
-      container: el.current, style: basemapStyle(p.basemap, p.data.manifest.passes[p.beforeIndex].date), interactive: false, attributionControl: false,
+      container: el.current, style: styleFor(p), interactive: false, attributionControl: false,
       center: src.getCenter(), zoom: src.getZoom(), bearing: src.getBearing(), pitch: src.getPitch(), maxPitch: 75,
     });
     map.current = m;
@@ -76,14 +81,17 @@ export default function CompareMap(p: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p.beforeIndex, p.radarOpacity, p.showWater, p.basemap]);
 
-  // basemap
-  const lastBase = useRef(p.basemap);
+  // basemap or optical day
+  const opticalKey = p.optical ? `${p.optical.layer}/${p.optical.date}` : "";
+  const lastStyle = useRef(`${p.basemap}|${opticalKey}`);
   useEffect(() => {
     const m = map.current;
-    if (!m || lastBase.current === p.basemap) return;
-    lastBase.current = p.basemap;
-    m.setStyle(basemapStyle(p.basemap, passes[props.current.beforeIndex].date));
-  }, [p.basemap]);
+    const key = `${p.basemap}|${opticalKey}`;
+    if (!m || lastStyle.current === key) return;
+    lastStyle.current = key;
+    m.setStyle(styleFor(props.current));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [p.basemap, opticalKey]);
 
   // divider dragging (mouse, touch, pen) and keyboard
   useEffect(() => {
@@ -113,8 +121,8 @@ export default function CompareMap(p: Props) {
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l-6 6 6 6M15 6l6 6-6 6" /></svg>
         </button>
       </div>
-      <div className="compare-tag left" style={{ right: `calc(100% - ${pct} + 12px)` }}>Before · {fmtDate(passes[p.beforeIndex].date, true)}</div>
-      <div className="compare-tag right" style={{ left: `calc(${pct} + 12px)` }}>After · {fmtDate(passes[p.afterIndex].date, true)}</div>
+      <div className="compare-tag left" style={{ right: `calc(100% - ${pct} + 12px)` }}>{p.optical ? `Optical, NASA HLS · ${fmtDate(p.optical.date)}` : `Before · ${fmtDate(passes[p.beforeIndex].date, true)}`}</div>
+      <div className="compare-tag right" style={{ left: `calc(${pct} + 12px)` }}>{p.optical ? `Radar, NISAR · ${fmtDate(passes[p.afterIndex].date)}` : `After · ${fmtDate(passes[p.afterIndex].date, true)}`}</div>
     </div>
   );
 }

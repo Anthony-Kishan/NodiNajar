@@ -1,0 +1,62 @@
+{
+ "method": "For each NISAR pass, the HLS day within 6 days with the fewest bright (cloud-like) pixels on the NASA GIBS tile at the box centre (zoom 10), among days covering at least about 70% of that tile. Probed in the browser on 13 Nov 2026; bright = all three colour channels above 170, which also counts some sand bars.",
+ "source": "NASA HLS v2.0 (Harmonized Landsat and Sentinel-2) true colour via NASA GIBS WMTS",
+ "by_pass": {
+  "2026-06-18": {
+   "date": "2026-06-14",
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "sensor": "Sentinel-2",
+   "tile_coverage_pct": 100,
+   "bright_pct": 11
+  },
+  "2026-06-30": {
+   "date": "2026-06-27",
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "sensor": "Sentinel-2",
+   "tile_coverage_pct": 79,
+   "bright_pct": 8
+  },
+  "2026-07-12": {
+   "date": "2026-07-16",
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "sensor": "Sentinel-2",
+   "tile_coverage_pct": 100,
+   "bright_pct": 15
+  },
+  "2026-07-24": {
+   "date": "2026-07-29",
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "sensor": "Sentinel-2",
+   "tile_coverage_pct": 100,
+   "bright_pct": 29
+  },
+  "2026-08-17": {
+   "date": "2026-08-14",
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "sensor": "Landsat",
+   "tile_coverage_pct": 70,
+   "bright_pct": 12
+  },
+  "2026-08-29": {
+   "date": "2026-08-29",
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "sensor": "Landsat",
+   "tile_coverage_pct": 100,
+   "bright_pct": 13
+  },
+  "2026-09-10": {
+   "date": "2026-09-10",
+   "layer": "HLS_S30_Nadir_BRDF_Adjusted_Reflectance",
+   "sensor": "Sentinel-2",
+   "tile_coverage_pct": 78,
+   "bright_pct": 9
+  },
+  "2026-09-22": {
+   "date": "2026-09-23",
+   "layer": "HLS_L30_Nadir_BRDF_Adjusted_Reflectance",
+   "sensor": "Landsat",
+   "tile_coverage_pct": 69,
+   "bright_pct": 21
+  }
+ }
+}

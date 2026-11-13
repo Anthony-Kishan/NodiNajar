@@ -61,3 +61,26 @@ export function basemapStyle(id: BasemapId, date?: string): StyleSpecification {
   }
   return { version: 8, sources, layers };
 }
+
+/** NASA HLS (Harmonized Landsat and Sentinel-2) true colour from GIBS for one day. layer = HLS_S30_... or HLS_L30_... */
+export const hlsTiles = (layer: string, date: string) => [
+  `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/${layer}/default/${date}/GoogleMapsCompatible_Level12/{z}/{y}/{x}.png`,
+];
+export const HLS_ATTR = 'Optical: <a href="https://www.earthdata.nasa.gov/data/projects/hls">NASA HLS</a> via NASA GIBS';
+
+/** A plain style with one optical HLS day (no radar), used on the left of the optical/radar swipe. */
+export function hlsStyle(layer: string, date: string): StyleSpecification {
+  return {
+    version: 8,
+    sources: {
+      base: { type: "raster", tiles: esri("World_Imagery"), tileSize: 256, maxzoom: 19, attribution: "Imagery © Esri, Maxar, Earthstar Geographics" },
+      hls: { type: "raster", tiles: hlsTiles(layer, date), tileSize: 256, maxzoom: 12, attribution: HLS_ATTR },
+      dem: DEM,
+    },
+    layers: [
+      { id: "bg", type: "background", paint: { "background-color": "#0b161d" } },
+      { id: "base", type: "raster", source: "base", paint: { "raster-opacity": 0.35, "raster-saturation": -1 } },
+      { id: "hls", type: "raster", source: "hls" },
+    ],
+  };
+}
