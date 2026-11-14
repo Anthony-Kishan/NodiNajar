@@ -44,7 +44,19 @@ Add a row for every other tool (ChatGPT, Copilot, image or voice generators, tra
 - No AI writes alert messages at runtime. Alerts are fixed Bangla/English templates filled with computed numbers.
 - Team decisions (challenge, proof site, thresholds after back-testing, story, video) are made by the team.
 
-TODO for the team: describe here what each member reviewed, changed or rewrote. Judges look for where your own work went.
+## What the team did
+
+| Member | Role | Own work |
+| --- | --- | --- |
+| Kishan Modhu | Team lead, ML and back-test | Chose the challenge and the Jamuna study site with the team; ran the NISAR downloads and the HV export with his own Earthdata login; ran the pipeline and pushed every commit; tested the live site and reported the problems that were fixed (basemap key errors, the missing before/after slider); generated the narration in ElevenLabs; filled in and submitted the local form and this project page. |
+| Kazi Majedul Islam | Backend, research, geospatial | Planned owner of the rain (GPM/POWER), HLS and news-pinning tasks and the data sources for the NASA page. |
+| Mahbub Al Hasan Akib | Radar lead (SAR), video editing | Planned owner of the HV export and the OPERA DSWx-HLS check, and co-editor of Video 2. |
+| Sajib Rahman | Full-stack, UI/UX | Planned owner of the optical and radar slider, the NASA data tags on every layer and the mobile check. |
+| Raihana Ferdosh | Story, video and presentation | Planned owner of the video scripts, voice-over and subtitles. |
+
+The team also supplied the two ASF search scripts that became `tools/asf_pass_dates.py`, the team photos, and the flood, school and river timelapse clips used in the videos.
+
+To be clear about the split: on 13 November the data, app and video tasks planned for Kazi, Akib, Sajib and Raihana were carried out by Claude with the team lead, as logged above, so the team could submit on time. Members add their own review notes below.
 
 ## Prompts
 
